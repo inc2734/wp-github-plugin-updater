@@ -1,0 +1,35 @@
+{
+  "name": "inc2734/wp-github-plugin-updater",
+  "description": "A library for WordPress that automatic plugin updater with GitHub API.",
+  "license": "GPL-2.0-or-later",
+  "version": "0.1.0",
+  "require": {
+    "php": ">=5.6",
+    "erusev/parsedown": "^1.6"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "*",
+    "wp-coding-standards/wpcs": "*",
+    "phpmd/phpmd": "2.*",
+    "phpunit/phpunit": "^5.7"
+  },
+  "authors": [
+    {
+      "name": "Takashi Kitajima",
+      "email": "inc@2inc.org"
+    }
+  ],
+  "autoload": {
+    "psr-4" : {
+      "Inc2734\\WP_GitHub_Plugin_Updater\\" : "src"
+    }
+  },
+  "scripts": {
+    "test": [
+      "vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs",
+      "vendor/bin/phpcs -p -s -v -n . --standard=./codesniffer.ruleset.xml --extensions=php",
+      "vendor/bin/phpmd ./ text phpmd.ruleset.xml --suffixes php --exclude /vendor/,/tests/",
+      "bash bin/phpunit.sh"
+    ]
+  }
+}
