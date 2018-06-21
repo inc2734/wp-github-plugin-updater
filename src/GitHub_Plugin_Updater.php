@@ -196,6 +196,7 @@ class GitHub_Plugin_Updater {
 		}
 
 		$obj               = new \stdClass();
+		$obj->slug         = $this->plugin_name;
 		$obj->name         = esc_html( $current['Name'] );
 		$obj->plugin_name  = esc_html( $current['Name'] );
 		$obj->author       = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $this->api_data->author->html_url ), esc_html( $this->api_data->author->login ) );
