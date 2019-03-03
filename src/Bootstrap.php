@@ -270,7 +270,7 @@ class Bootstrap {
 	 * @return object|WP_Error
 	 */
 	protected function _get_transient_api_data() {
-		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->theme_name );
+		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
 		if ( false === get_transient( $transient_name ) || 1 ) {
 			$api_data = $this->_get_github_api_data();
 			set_transient( $transient_name, $api_data, 60 * 5 );
