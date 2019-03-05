@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class SampleTest
+ *
+ * @package wp-github-plugin-updater
+ */
 class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 
 	private $_upgrade_dir;

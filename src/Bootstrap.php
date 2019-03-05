@@ -328,7 +328,6 @@ class Bootstrap {
 				],
 			]
 		);
-
 	}
 
 	/**
