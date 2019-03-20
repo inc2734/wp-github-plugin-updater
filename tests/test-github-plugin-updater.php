@@ -57,23 +57,30 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $transient );
 	}
 
+	/**
+	 * @test
+	 */
 	public function fail_transmission() {
 		$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-norepo' );
 		$transient = apply_filters( 'pre_set_site_transient_update_plugins', false );
 		$this->assertFalse( $transient );
 	}
 
+	/**
+	 * @test
+	 */
 	public function upgrader_pre_install() {
-		$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dorry' );
+		$updater  = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dorry' );
+		$upgrader = new Inc2734\WP_GitHub_Plugin_Updater\App\Model\Upgrader( 'hello.php' );
 
-		$result = $updater->_upgrader_pre_install( true, [ 'plugin' => 'mw-wp-form/mw-wp-form.php' ] );
+		$result = $upgrader->pre_install( true, [ 'plugin' => 'mw-wp-form/mw-wp-form.php' ] );
 		$this->assertTrue( $result );
 
-		$result = $updater->_upgrader_pre_install( true, [ 'plugin' => 'smart-custom-fields/smart-custom-fields.php' ] );
+		$result = $upgrader->pre_install( true, [ 'plugin' => 'smart-custom-fields/smart-custom-fields.php' ] );
 		$this->assertTrue( $result );
 
 		rename( WP_CONTENT_DIR . '/plugins/hello.php', WP_CONTENT_DIR . '/plugins/hello-dolly-org.php' );
-		$result = $updater->_upgrader_pre_install( true, [ 'plugin' => 'hello.php' ] );
+		$result = $upgrader->pre_install( true, [ 'plugin' => 'hello.php' ] );
 		$this->assertTrue( is_wp_error( $result ) );
 		rename( WP_CONTENT_DIR . '/plugins/hello-dolly-org.php', WP_CONTENT_DIR . '/plugins/hello.php' );
 	}
@@ -134,7 +141,7 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 		$_get_zip_url = $class->getMethod( '_get_zip_url' );
 		$_get_zip_url->setAccessible( true );
 
-		$updater  = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dolly' );
+		$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dolly' );
 
 		add_filter(
 			'inc2734_github_plugin_updater_request_url_inc2734/dummy-hello-dolly',
