@@ -10,6 +10,13 @@ namespace Inc2734\WP_GitHub_Plugin_Updater;
 class Bootstrap {
 
 	/**
+	 * The plugin name
+	 *
+	 * @var string
+	 */
+	protected $plugin_name;
+
+	/**
 	 * GitHub user name
 	 *
 	 * @var string
@@ -49,9 +56,11 @@ class Bootstrap {
 		$this->repository  = $repository;
 		$this->fields      = $fields;
 
+		$upgrader = new App\Model\Upgrader( $plugin_name );
+
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, '_pre_set_site_transient_update_plugins' ] );
-		add_filter( 'upgrader_pre_install', [ $this, '_upgrader_pre_install' ], 10, 2 );
-		add_filter( 'upgrader_source_selection', [ $this, '_upgrader_source_selection' ], 10, 4 );
+		add_filter( 'upgrader_pre_install', [ $upgrader, 'pre_install' ], 10, 2 );
+		add_filter( 'upgrader_source_selection', [ $upgrader, 'source_selection' ], 10, 4 );
 		add_filter( 'plugins_api', [ $this, '_plugins_api' ], 10, 3 );
 	}
 
@@ -104,60 +113,6 @@ class Bootstrap {
 		];
 
 		return $transient;
-	}
-
-	/**
-	 * Correspondence when the plugin can not be updated
-	 *
-	 * @param bool $bool
-	 * @param array $hook_extra
-	 * @return bool|WP_Error.
-	 */
-	public function _upgrader_pre_install( $bool, $hook_extra ) {
-		if ( ! isset( $hook_extra['plugin'] ) || $this->plugin_name !== $hook_extra['plugin'] ) {
-			return $bool;
-		}
-
-		global $wp_filesystem;
-
-		$plugin_dir = trailingslashit( WP_PLUGIN_DIR ) . $this->plugin_name;
-		if ( ! $wp_filesystem->is_writable( $plugin_dir ) ) {
-			return new \WP_Error();
-		}
-
-		return $bool;
-	}
-
-	/**
-	 * Expand the plugin
-	 *
-	 * @param string $source
-	 * @param string $remote_source
-	 * @param WP_Upgrader $install
-	 * @param array $args['hook_extra']
-	 * @return $source|WP_Error.
-	 */
-	public function _upgrader_source_selection( $source, $remote_source, $install, $hook_extra ) {
-		if ( ! isset( $hook_extra['plugin'] ) || $this->plugin_name !== $hook_extra['plugin'] ) {
-			return $source;
-		}
-
-		global $wp_filesystem;
-
-		$source_plugin_dir = untrailingslashit( WP_CONTENT_DIR ) . '/upgrade';
-		if ( $wp_filesystem->is_writable( $source_plugin_dir ) && $wp_filesystem->is_writable( $source ) ) {
-			if ( 0 < strpos( $this->plugin_name, '/' ) ) {
-				$slug = trailingslashit( dirname( $this->plugin_name ) );
-			} else {
-				$slug = $this->plugin_name;
-			}
-			$newsource = trailingslashit( $source_plugin_dir ) . $slug;
-			if ( $wp_filesystem->move( $source, $newsource, true ) ) {
-				return $newsource;
-			}
-		}
-
-		return new \WP_Error();
 	}
 
 	/**
@@ -244,6 +199,7 @@ class Bootstrap {
 	 */
 	protected function _get_zip_url( $remote ) {
 		$url = false;
+
 		if ( ! empty( $remote->assets ) && is_array( $remote->assets ) ) {
 			if ( ! empty( $remote->assets[0] ) && is_object( $remote->assets[0] ) ) {
 				if ( ! empty( $remote->assets[0]->browser_download_url ) ) {
@@ -252,16 +208,28 @@ class Bootstrap {
 			}
 		}
 
-		if ( ! $url ) {
+		$tag_name = isset( $remote->tag_name ) ? $remote->tag_name : null;
+
+		if ( ! $url && $tag_name ) {
 			$url = sprintf(
 				'https://github.com/%1$s/%2$s/archive/%3$s.zip',
 				$this->user_name,
 				$this->repository,
-				$remote->tag_name
+				$tag_name
 			);
 		}
 
-		return apply_filters( 'inc2734_github_plugin_updater_zip_url', $url, $this->user_name, $this->repository, $remote->tag_name );
+		return apply_filters(
+			sprintf(
+				'inc2734_github_plugin_updater_zip_url_%1$s/%2$s',
+				$this->user_name,
+				$this->repository
+			),
+			$url,
+			$this->user_name,
+			$this->repository,
+			$tag_name
+		);
 	}
 
 	/**
@@ -271,7 +239,7 @@ class Bootstrap {
 	 */
 	protected function _get_transient_api_data() {
 		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
-		if ( false === get_transient( $transient_name ) || 1 ) {
+		if ( false === get_transient( $transient_name ) ) {
 			$api_data = $this->_get_github_api_data();
 			set_transient( $transient_name, $api_data, 60 * 5 );
 		} else {
@@ -320,7 +288,16 @@ class Bootstrap {
 		);
 
 		return wp_remote_get(
-			apply_filters( 'inc2734_github_plugin_updater_request_url', $url, $this->user_name, $this->repository ),
+			apply_filters(
+				sprintf(
+					'inc2734_github_plugin_updater_request_url_%1$s/%2$s',
+					$this->user_name,
+					$this->repository
+				),
+				$url,
+				$this->user_name,
+				$this->repository
+			),
 			[
 				'user-agent' => 'WordPress/' . $wp_version,
 				'headers'    => [
