@@ -150,14 +150,13 @@ class Bootstrap {
 	 * @return void
 	 */
 	protected function _set_notice_error_about_github_api() {
-		$api_data = $this->_get_transient_api_data();
-		if ( ! is_wp_error( $api_data ) ) {
-			return;
-		}
-
 		add_action(
 			'admin_notices',
 			function() {
+				$api_data = $this->_get_transient_api_data();
+				if ( ! is_wp_error( $api_data ) ) {
+					return;
+				}
 				?>
 				<div class="notice notice-error">
 					<p>
@@ -246,6 +245,7 @@ class Bootstrap {
 			return $body;
 		}
 
+		$message = null !== $body && property_exists( $body, 'message' ) ? $body->message : '';
 		return new \WP_Error(
 			$response_code,
 			'Inc2734_WP_GitHub_Plugin_Updater error. ' . $body->message
