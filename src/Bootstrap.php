@@ -248,7 +248,7 @@ class Bootstrap {
 		$message = null !== $body && property_exists( $body, 'message' ) ? $body->message : '';
 		return new \WP_Error(
 			$response_code,
-			'Inc2734_WP_GitHub_Plugin_Updater error. ' . $body->message
+			'Inc2734_WP_GitHub_Plugin_Updater error. ' . $message
 		);
 	}
 
