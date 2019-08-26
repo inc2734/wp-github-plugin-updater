@@ -90,14 +90,22 @@ class Bootstrap {
 			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $package );
 			return $transient;
 		}
-
-		$transient->response[ $this->plugin_name ] = (object) [
+		$transient_response = [
 			'slug'        => $this->plugin_name,
 			'plugin'      => $this->plugin_name,
 			'new_version' => $api_data->tag_name,
 			'url'         => ( ! empty( $this->fields['homepage'] ) ) ? $this->fields['homepage'] : '',
 			'package'     => $package,
 		];
+		$transient_response = apply_filters(
+			sprintf(
+				'inc2734_github_plugin_updater_transient_response_%1$s/%2$s',
+				$this->user_name,
+				$this->repository
+			),
+			$transient_response
+		);
+		$transient->response[ $this->plugin_name ] = (object) $transient_response;
 
 		return $transient;
 	}
@@ -139,7 +147,16 @@ class Bootstrap {
 		$obj->author       = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $api_data->author->html_url ), esc_html( $api_data->author->login ) );
 		$obj->version      = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', $api_data->html_url, $api_data->tag_name );
 		$obj->last_updated = $api_data->published_at;
-		$obj->sections     = [ 'readme' => $readme ];
+		$obj->sections     = [ 'description' => $readme ];
+
+		$obj = apply_filters(
+			sprintf(
+				'inc2734_github_plugin_updater_plugins_api_%1$s/%2$s',
+				$this->user_name,
+				$this->repository
+			),
+			$obj
+		);
 
 		return $obj;
 	}
