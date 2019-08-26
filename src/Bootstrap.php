@@ -90,12 +90,14 @@ class Bootstrap {
 			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $package );
 			return $transient;
 		}
+		$icons = ( ! empty( $this->fields['icons'] ) ) ? $this->fields['icons'] : [];
 		$transient_response = [
 			'slug'        => $this->plugin_name,
 			'plugin'      => $this->plugin_name,
 			'new_version' => $api_data->tag_name,
 			'url'         => ( ! empty( $this->fields['homepage'] ) ) ? $this->fields['homepage'] : '',
 			'package'     => $package,
+			'icons'       => $icons,
 		];
 		$transient_response = apply_filters(
 			sprintf(
@@ -132,13 +134,19 @@ class Bootstrap {
 			return $obj;
 		}
 
-		$parsedown = new \Parsedown();
 		$current   = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		$readme    = '';
+		$sessions  = [];
 
-		if ( is_file( WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md' ) ) {
-			$readme = $parsedown->text( file_get_contents( WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md' ) );
-		}
+		$url = ( ! empty( $this->fields['description_url'] ) ) ? $this->fields['description_url'] : WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md';
+		$sessions['description'] = $this->_get_content_text( $url );
+		$url = ( ! empty( $this->fields['installation_url'] ) ) ? $this->fields['installation_url'] : '';
+		$sessions['installation'] = $this->_get_content_text( $url );
+		$url = ( ! empty( $this->fields['faq_url'] ) ) ? $this->fields['faq_url'] : '';
+		$sessions['faq'] = $this->_get_content_text( $url );
+		$url = ( ! empty( $this->fields['changelog_url'] ) ) ? $this->fields['changelog_url'] : '';
+		$sessions['changelog'] = $this->_get_content_text( $url );
+		$url = ( ! empty( $this->fields['screenshots_url'] ) ) ? $this->fields['screenshots_url'] : '';
+		$sessions['screenshots'] = $this->_get_content_text( $url );
 
 		$obj               = new \stdClass();
 		$obj->slug         = $this->plugin_name;
@@ -147,7 +155,7 @@ class Bootstrap {
 		$obj->author       = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $api_data->author->html_url ), esc_html( $api_data->author->login ) );
 		$obj->version      = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', $api_data->html_url, $api_data->tag_name );
 		$obj->last_updated = $api_data->published_at;
-		$obj->sections     = [ 'description' => $readme ];
+		$obj->sections     = $sessions;
 
 		$obj = apply_filters(
 			sprintf(
@@ -349,5 +357,26 @@ class Bootstrap {
 		);
 
 		return wp_remote_retrieve_response_code( $response );
+	}
+
+	/**
+	 * Return content text
+	 *
+	 * @param string $url
+	 * @return string
+	 */
+	protected function _get_content_text( $url ) {
+		if ( empty( $url ) ) {
+			return '';
+		}
+		$text = file_get_contents( $url );
+		if ( $text === false ) {
+			return '';
+		}
+		if ( 'md' === substr( $url, strrpos( $url, '.' ) + 1 ) ) {
+			$parsedown = new \Parsedown();
+			$text = $parsedown->text( $text );
+		}
+		return $text;
 	}
 }
