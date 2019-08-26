@@ -151,6 +151,7 @@ class Bootstrap {
 		$sessions['changelog'] = $this->_get_content_text( $url );
 		$url = ( ! empty( $this->fields['screenshots_url'] ) ) ? $this->fields['screenshots_url'] : '';
 		$sessions['screenshots'] = $this->_get_content_text( $url );
+		$banners = ( ! empty( $this->fields['banners'] ) ) ? $this->fields['banners'] : [];
 
 		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
@@ -160,6 +161,7 @@ class Bootstrap {
 		$obj->version      = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', $api_data->html_url, $api_data->tag_name );
 		$obj->last_updated = $api_data->published_at;
 		$obj->sections     = $sessions;
+		$obj->banners      = $banners;
 
 		$obj = apply_filters(
 			sprintf(
