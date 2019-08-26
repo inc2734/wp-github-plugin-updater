@@ -95,12 +95,14 @@ class Bootstrap {
 			return $transient;
 		}
 		$icons = ( ! empty( $this->fields['icons'] ) ) ? $this->fields['icons'] : [];
+		$tested = ( ! empty( $this->fields['tested'] ) ) ? $this->fields['tested'] : null;
 		$transient_response = [
 			'slug'        => $this->plugin_name,
 			'plugin'      => $this->plugin_name,
 			'new_version' => $api_data->tag_name,
 			'url'         => ( ! empty( $this->fields['homepage'] ) ) ? $this->fields['homepage'] : '',
 			'package'     => $package,
+			'tested'      => $tested,
 			'icons'       => $icons,
 		];
 		$transient_response = apply_filters(
@@ -152,6 +154,9 @@ class Bootstrap {
 		$url = ( ! empty( $this->fields['screenshots_url'] ) ) ? $this->fields['screenshots_url'] : '';
 		$sessions['screenshots'] = $this->_get_content_text( $url );
 		$banners = ( ! empty( $this->fields['banners'] ) ) ? $this->fields['banners'] : [];
+		$tested = ( ! empty( $this->fields['tested'] ) ) ? $this->fields['tested'] : null;
+		$requires_php = ( ! empty( $this->fields['requires_php'] ) ) ? $this->fields['requires_php'] : null;
+		$requires = ( ! empty( $this->fields['requires'] ) ) ? $this->fields['requires'] : null;
 
 		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
@@ -162,6 +167,9 @@ class Bootstrap {
 		$obj->last_updated = $api_data->published_at;
 		$obj->sections     = $sessions;
 		$obj->banners      = $banners;
+		$obj->tested       = $tested;
+		$obj->requires_php = $requires_php;
+		$obj->requires     = $requires;
 
 		$obj = apply_filters(
 			sprintf(
