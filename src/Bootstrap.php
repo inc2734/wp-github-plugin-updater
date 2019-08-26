@@ -7,6 +7,10 @@
 
 namespace Inc2734\WP_GitHub_Plugin_Updater;
 
+use WP_Error;
+use stdClass;
+use Parsedown;
+
 class Bootstrap {
 
 	/**
@@ -124,7 +128,7 @@ class Bootstrap {
 			return $obj;
 		}
 
-		$parsedown = new \Parsedown();
+		$parsedown = new Parsedown();
 		$current   = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
 		$readme    = '';
 
@@ -132,7 +136,7 @@ class Bootstrap {
 			$readme = $parsedown->text( file_get_contents( WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md' ) );
 		}
 
-		$obj               = new \stdClass();
+		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
 		$obj->name         = esc_html( $current['Name'] );
 		$obj->plugin_name  = esc_html( $current['Name'] );
@@ -245,8 +249,11 @@ class Bootstrap {
 			return $body;
 		}
 
-		$message = null !== $body && property_exists( $body, 'message' ) ? $body->message : '';
-		return new \WP_Error(
+		$message = null !== $body && property_exists( $body, 'message' )
+			? $body->message
+			: __( 'No response.', 'inc2734-wp-github-plugin-updater' );
+
+		return new WP_Error(
 			$response_code,
 			'Inc2734_WP_GitHub_Plugin_Updater error. ' . $message
 		);
