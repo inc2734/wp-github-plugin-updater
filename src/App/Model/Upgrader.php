@@ -7,6 +7,8 @@
 
 namespace Inc2734\WP_GitHub_Plugin_Updater\App\Model;
 
+use WP_Error;
+
 class Upgrader {
 
 	/**
@@ -52,7 +54,7 @@ class Upgrader {
 			}
 		}
 
-		return new \WP_Error();
+		return new WP_Error();
 	}
 
 	/**
@@ -71,7 +73,7 @@ class Upgrader {
 
 		$plugin_dir = trailingslashit( WP_PLUGIN_DIR ) . $this->plugin_name;
 		if ( ! $wp_filesystem->is_writable( $plugin_dir ) ) {
-			return new \WP_Error();
+			return new WP_Error();
 		}
 
 		return $bool;
