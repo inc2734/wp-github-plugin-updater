@@ -94,16 +94,14 @@ class Bootstrap {
 			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $package );
 			return $transient;
 		}
-		$icons = ( ! empty( $this->fields['icons'] ) ) ? $this->fields['icons'] : [];
-		$tested = ( ! empty( $this->fields['tested'] ) ) ? $this->fields['tested'] : null;
 		$transient_response = [
 			'slug'        => $this->plugin_name,
 			'plugin'      => $this->plugin_name,
 			'new_version' => $api_data->tag_name,
 			'url'         => ( ! empty( $this->fields['homepage'] ) ) ? $this->fields['homepage'] : '',
 			'package'     => $package,
-			'tested'      => $tested,
-			'icons'       => $icons,
+			'tested'      => ( ! empty( $this->fields['tested'] ) ) ? $this->fields['tested'] : null,
+			'icons'       => ( ! empty( $this->fields['icons'] ) ) ? $this->fields['icons'] : [],
 		];
 		$transient_response = apply_filters(
 			sprintf(
