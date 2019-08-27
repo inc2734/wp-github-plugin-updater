@@ -51,7 +51,9 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 				'new_version' => '1000000',
 				'url'         => '',
 				'package'     => 'https://github.com/inc2734/dummy-hello-dolly/archive/1000000.zip',
-				'slug'        => 'hello.php'
+				'slug'        => 'hello.php',
+				'tested'      => null,
+				'icons'       => [],
 			],
 		];
 		$this->assertEquals( $expected, $transient );

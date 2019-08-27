@@ -10,6 +10,7 @@ namespace Inc2734\WP_GitHub_Plugin_Updater;
 use WP_Error;
 use stdClass;
 use Parsedown;
+use Inc2734\WP_GitHub_Plugin_Updater\App\Model\Fields;
 
 class Bootstrap {
 
@@ -37,9 +38,9 @@ class Bootstrap {
 	/**
 	 * Plugin data fields
 	 *
-	 * @var array
+	 * @var Fields
 	 */
-	protected $fields = [];
+	protected $fields;
 
 	/**
 	 * @param string $plugin_name
@@ -51,7 +52,7 @@ class Bootstrap {
 		$this->plugin_name = $plugin_name;
 		$this->user_name   = $user_name;
 		$this->repository  = $repository;
-		$this->fields      = $fields;
+		$this->fields      = new Fields( $fields );
 
 		$upgrader = new App\Model\Upgrader( $plugin_name );
 
@@ -98,10 +99,10 @@ class Bootstrap {
 			'slug'        => $this->plugin_name,
 			'plugin'      => $this->plugin_name,
 			'new_version' => $api_data->tag_name,
-			'url'         => ( ! empty( $this->fields['homepage'] ) ) ? $this->fields['homepage'] : '',
+			'url'         => $this->fields->get( 'homepage' ),
 			'package'     => $package,
-			'tested'      => ( ! empty( $this->fields['tested'] ) ) ? $this->fields['tested'] : null,
-			'icons'       => ( ! empty( $this->fields['icons'] ) ) ? $this->fields['icons'] : [],
+			'tested'      => $this->fields->get( 'tested' ),
+			'icons'       => $this->fields->get( 'icons' ),
 		];
 		$transient_response = apply_filters(
 			sprintf(
@@ -138,23 +139,16 @@ class Bootstrap {
 			return $obj;
 		}
 
-		$current   = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		$sessions  = [];
+		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+		$description_url = $this->fields->get( 'description_url' ) ? $this->fields->get( 'description_url' ) : WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md';
 
-		$url = ( ! empty( $this->fields['description_url'] ) ) ? $this->fields['description_url'] : WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md';
-		$sessions['description'] = $this->_get_content_text( $url );
-		$url = ( ! empty( $this->fields['installation_url'] ) ) ? $this->fields['installation_url'] : '';
-		$sessions['installation'] = $this->_get_content_text( $url );
-		$url = ( ! empty( $this->fields['faq_url'] ) ) ? $this->fields['faq_url'] : '';
-		$sessions['faq'] = $this->_get_content_text( $url );
-		$url = ( ! empty( $this->fields['changelog_url'] ) ) ? $this->fields['changelog_url'] : '';
-		$sessions['changelog'] = $this->_get_content_text( $url );
-		$url = ( ! empty( $this->fields['screenshots_url'] ) ) ? $this->fields['screenshots_url'] : '';
-		$sessions['screenshots'] = $this->_get_content_text( $url );
-		$banners = ( ! empty( $this->fields['banners'] ) ) ? $this->fields['banners'] : [];
-		$tested = ( ! empty( $this->fields['tested'] ) ) ? $this->fields['tested'] : null;
-		$requires_php = ( ! empty( $this->fields['requires_php'] ) ) ? $this->fields['requires_php'] : null;
-		$requires = ( ! empty( $this->fields['requires'] ) ) ? $this->fields['requires'] : null;
+		$sessions  = [
+			'description'  => $this->_get_content_text( $description_url ),
+			'installation' => $this->_get_content_text( $this->fields->get( 'installation_url' ) ),
+			'faq'          => $this->_get_content_text( $this->fields->get( 'faq_url' ) ),
+			'changelog'    => $this->_get_content_text( $this->fields->get( 'changelog_url' ) ),
+			'screenshots'  => $this->_get_content_text( $this->fields->get( 'screenshots_url' ) ),
+		];
 
 		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
@@ -164,10 +158,10 @@ class Bootstrap {
 		$obj->version      = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', $api_data->html_url, $api_data->tag_name );
 		$obj->last_updated = $api_data->published_at;
 		$obj->sections     = $sessions;
-		$obj->banners      = $banners;
-		$obj->tested       = $tested;
-		$obj->requires_php = $requires_php;
-		$obj->requires     = $requires;
+		$obj->banners      = $this->fields->get( 'banners' );
+		$obj->tested       = $this->fields->get( 'tested' );
+		$obj->requires_php = $this->fields->get( 'requires_php' );
+		$obj->requires     = $this->fields->get( 'requires' );
 
 		$obj = apply_filters(
 			sprintf(
