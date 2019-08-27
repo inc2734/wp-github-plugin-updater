@@ -10,10 +10,43 @@ $ composer require inc2734/wp-github-plugin-updater
 ```
 
 ## How to use
+### Basic
 ```
 <?php
-// When Using composer auto loader
-$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( plugin_basename( __FILE__ ), 'user-name', 'repository' );
+$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap(
+  plugin_basename( __FILE__ ),
+  'user-name',
+  'repository'
+);
+```
+
+### Advanced
+```
+<?php
+$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap(
+  plugin_basename( __FILE__ ),
+  'user-name',
+  'repository',
+  [
+    'description_url'  => '', // URL for description tab content
+    'installation_url' => '', // URL for installation tab content
+    'faq_url'          => '', // URL for FAQ tab content
+    'changelog_url'    => '', // URL for changelog tab content
+    'screenshots_url'  => '', // URL for screenshots tab content
+    'icons' => [
+      'svg' => '', // svg URL. Square recommended
+      '1x'  => '', // Image URL 64×64
+      '2x'  => '', // Image URL 128×128
+    ],
+    'banners' => [
+      'low'  => '', // Image URL 772×250
+      'high' => '', // Image URL 1554×500
+    ],
+    'tested'       => '5.2.2', // Tested up WordPress version
+    'requires_php' => '5.6.0', // Requires PHP version
+    'requires'     => '5.0.0', // Requires WordPress version
+  ]
+);
 ```
 
 ## Filter hooks
@@ -84,5 +117,18 @@ add_filter(
   },
   10,
   3
+);
+```
+
+### inc2734_github_plugin_updater_plugins_api_<$user_name>/<$repository>
+
+Customize fields of `plugins_api`.
+
+```
+add_filter(
+  'inc2734_github_plugin_updater_plugins_api_inc2734/snow-monkey-blocks',
+  function( $obj ) {
+    return $obj;
+  }
 );
 ```
