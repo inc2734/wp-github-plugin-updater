@@ -284,23 +284,26 @@ class Bootstrap {
 			? $body->message
 			: __( 'Failed to get update response.', 'inc2734-wp-github-plugin-updater' );
 
+		$current       = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+		$error_message = sprintf(
+			/* Translators: 1: Plugin name, 2: Error message  */
+			__( '[%1$s] %2$s', 'inc2734-wp-github-plugin-updater' ),
+			$current['Name'],
+			$message
+		);
+
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. ' . $response_code . ' : ' . $message );
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message );
 		}
 
-		if ( $pagenow === 'update-core.php' || $pagenow === 'plugins.php' ) {
-			$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-			$error_message = sprintf(
-				__( '[%1$s] %2$s', 'inc2734-wp-github-plugin-updater' ),
-				$current['Name'],
-				$message
-			);
-			return new WP_Error(
-				$response_code,
-				$error_message
-			);
+		if ( ! in_array( $pagenow, [ 'update-core.php', 'plugins.php' ] ) ) {
+			return null;
 		}
-		return null;
+
+		return new WP_Error(
+			$response_code,
+			$error_message
+		);
 	}
 
 	/**
