@@ -54,6 +54,8 @@ class Bootstrap {
 		$this->repository  = $repository;
 		$this->fields      = new Fields( $fields );
 
+		load_textdomain( 'inc2734-wp-github-plugin-updater', __DIR__ . '/languages/' . get_locale() . '.mo' );
+
 		$upgrader = new App\Model\Upgrader( $plugin_name );
 
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, '_pre_set_site_transient_update_plugins' ] );
