@@ -264,26 +264,43 @@ class Bootstrap {
 	 * @return object|WP_Error
 	 */
 	protected function _get_github_api_data() {
+		global $pagenow;
 		$response = $this->_request_github_api();
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
-		$body = json_decode( wp_remote_retrieve_body( $response ) );
+		if ( '' === $response_code ) {
+			return null;
+		}
 
+		$body = json_decode( wp_remote_retrieve_body( $response ) );
 		if ( 200 == $response_code ) {
 			return $body;
 		}
 
 		$message = null !== $body && property_exists( $body, 'message' )
 			? $body->message
-			: __( 'No response.', 'inc2734-wp-github-plugin-updater' );
+			: __( 'Failed to get update response.', 'inc2734-wp-github-plugin-updater' );
 
-		return new WP_Error(
-			$response_code,
-			'Inc2734_WP_GitHub_Plugin_Updater error. ' . $message
-		);
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. ' . $response_code . ' : ' . $message );
+		}
+
+		if ( $pagenow === 'update-core.php' || $pagenow === 'plugins.php' ) {
+			$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+			$error_message = sprintf(
+				__( '[%1$s] %2$s', 'inc2734-wp-github-plugin-updater' ),
+				$current['Name'],
+				$message
+			);
+			return new WP_Error(
+				$response_code,
+				$error_message
+			);
+		}
+		return null;
 	}
 
 	/**
