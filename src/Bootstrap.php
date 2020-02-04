@@ -401,7 +401,7 @@ class Bootstrap {
 			return '';
 		}
 		$text = file_get_contents( $url );
-		if ( $text === false ) {
+		if ( false === $text ) {
 			return '';
 		}
 		if ( 'md' === substr( $url, strrpos( $url, '.' ) + 1 ) ) {
