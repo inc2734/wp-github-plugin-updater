@@ -106,8 +106,6 @@ class Bootstrap {
 			return $transient;
 		}
 
-		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-
 		$transient_response = [
 			'slug'         => $this->plugin_name,
 			'plugin'       => $this->plugin_name,
