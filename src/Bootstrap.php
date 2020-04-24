@@ -58,10 +58,18 @@ class Bootstrap {
 
 		$upgrader = new App\Model\Upgrader( $plugin_name );
 
+		add_filter( 'extra_plugin_headers', [ $this, '_extra_plugin_headers' ] );
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, '_pre_set_site_transient_update_plugins' ] );
 		add_filter( 'upgrader_pre_install', [ $upgrader, 'pre_install' ], 10, 2 );
 		add_filter( 'upgrader_source_selection', [ $upgrader, 'source_selection' ], 10, 4 );
 		add_filter( 'plugins_api', [ $this, '_plugins_api' ], 10, 3 );
+	}
+
+	public function _extra_plugin_headers( $headers ) {
+		if ( ! in_array( 'Tested up to', $headers ) ) {
+			$headers[] = 'Tested up to';
+		}
+		return $headers;
 	}
 
 	/**
@@ -97,15 +105,21 @@ class Bootstrap {
 			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $package );
 			return $transient;
 		}
+
+		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+
 		$transient_response = [
-			'slug'        => $this->plugin_name,
-			'plugin'      => $this->plugin_name,
-			'new_version' => $api_data->tag_name,
-			'url'         => $this->fields->get( 'homepage' ),
-			'package'     => $package,
-			'tested'      => $this->fields->get( 'tested' ),
-			'icons'       => $this->fields->get( 'icons' ),
+			'slug'         => $this->plugin_name,
+			'plugin'       => $this->plugin_name,
+			'new_version'  => $api_data->tag_name,
+			'url'          => $this->fields->get( 'homepage' ),
+			'package'      => $package,
+			'icons'        => $this->fields->get( 'icons' ),
+			'banners'      => $this->fields->get( 'banners' ),
+			'requires_php' => $this->fields->get( 'requires_php' ) ? $this->fields->get( 'requires_php' ) : $current['RequiresPHP'],
+			'tested'       => $this->fields->get( 'tested' ) ? $this->fields->get( 'tested' ) : $current['Tested up to'],
 		];
+
 		$transient_response = apply_filters(
 			sprintf(
 				'inc2734_github_plugin_updater_transient_response_%1$s/%2$s',
@@ -142,22 +156,31 @@ class Bootstrap {
 		}
 
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		$description_url = $this->fields->get( 'description_url' ) ? $this->fields->get( 'description_url' ) : WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md';
 
-		$obj = new stdClass();
-		$fields = array_keys( get_object_vars( $this->fields ) );
-		foreach ( $fields as $field ) {
-			$obj->$field = $this->fields->get( $field );
-		}
-
+		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
 		$obj->name         = esc_html( $current['Name'] );
 		$obj->plugin_name  = esc_html( $current['Name'] );
 		$obj->author       = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $api_data->author->html_url ), esc_html( $api_data->author->login ) );
 		$obj->version      = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', $api_data->html_url, $api_data->tag_name );
 		$obj->last_updated = $api_data->published_at;
+		$obj->requires     = esc_html( $current['RequiresWP'] );
+		$obj->requires_php = esc_html( $current['RequiresPHP'] );
+		$obj->tested       = esc_html( $current['Tested up to'] );
+
+		$fields = array_keys( get_object_vars( $this->fields ) );
+		foreach ( $fields as $field ) {
+			if ( isset( $obj->$field ) ) {
+				continue;
+			}
+			$obj->$field = $this->fields->get( $field );
+		}
 
 		if ( empty( $obj->sections ) ) {
+			$description_url = $this->fields->get( 'description_url' )
+				? $this->fields->get( 'description_url' )
+				: WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md';
+
 			$obj->sections = [
 				'description'  => $this->_get_content_text( $description_url ),
 				'installation' => $this->_get_content_text( $this->fields->get( 'installation_url' ) ),

@@ -17,7 +17,7 @@ class Fields {
 	 *
 	 * @var string|boolean
 	 */
-	public $short_description = true;
+	public $short_description = false;
 
 	/**
 	 * Whether to return the plugin full description.
@@ -46,84 +46,84 @@ class Fields {
 	 *
 	 * @var int|boolean
 	 */
-	public $tested = true;
+	public $tested = false;
 
 	/**
 	 * Whether to return the required WordPress version.
 	 *
 	 * @var int|boolean
 	 */
-	public $requires = true;
+	public $requires = false;
 
 	/**
 	 * Whether to return the required PHP version.
 	 *
 	 * @var int|boolean
 	 */
-	public $requires_php = true;
+	public $requires_php = false;
 
 	/**
 	 * Whether to return the rating in percent and total number of ratings.
 	 *
 	 * @var int|boolean
 	 */
-	public $rating = true;
+	public $rating = false;
 
 	/**
 	 * Whether to return the number of rating for each star (1-5).
 	 *
 	 * @var array|boolean
 	 */
-	public $ratings = true;
+	public $ratings = false;
 
 	/**
 	 * Whether to return the download count.
 	 *
 	 * @var int|boolean
 	 */
-	public $downloaded = true;
+	public $downloaded = false;
 
 	/**
 	 * Whether to return the download link for the package.
 	 *
 	 * @var string|boolean
 	 */
-	public $downloadlink = true;
+	public $downloadlink = false;
 
 	/**
 	 * Whether to return the date of the last update.
 	 *
 	 * @var string|boolean
 	 */
-	public $last_updated = true;
+	public $last_updated = false;
 
 	/**
 	 * Whether to return the date when the plugin was added to the wordpress.org repository.
 	 *
 	 * @var string|boolean
 	 */
-	public $added = true;
+	public $added = false;
 
 	/**
 	 * Whether to return the assigned tags.
 	 *
 	 * @var array|boolean
 	 */
-	public $tags = true;
+	public $tags = false;
 
 	/**
 	 * Whether to return the WordPress compatibility list.
 	 *
 	 * @var array|boolean
 	 */
-	public $compatibility = true;
+	public $compatibility = false;
 
 	/**
 	 * Whether to return the plugin homepage link.
 	 *
 	 * @var string|boolean
 	 */
-	public $homepage = true;
+	public $homepage = false;
 
 	/**
 	 * Whether to return the list of all available versions.
@@ -137,7 +137,7 @@ class Fields {
 	 *
 	 * @var string|boolean
 	 */
-	public $donate_link = true;
+	public $donate_link = false;
 
 	/**
 	 * Whether to return the plugin reviews.
