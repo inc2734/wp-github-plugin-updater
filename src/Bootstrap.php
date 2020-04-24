@@ -144,26 +144,28 @@ class Bootstrap {
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
 		$description_url = $this->fields->get( 'description_url' ) ? $this->fields->get( 'description_url' ) : WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md';
 
-		$sessions  = [
-			'description'  => $this->_get_content_text( $description_url ),
-			'installation' => $this->_get_content_text( $this->fields->get( 'installation_url' ) ),
-			'faq'          => $this->_get_content_text( $this->fields->get( 'faq_url' ) ),
-			'changelog'    => $this->_get_content_text( $this->fields->get( 'changelog_url' ) ),
-			'screenshots'  => $this->_get_content_text( $this->fields->get( 'screenshots_url' ) ),
-		];
+		$obj = new stdClass();
+		$fields = array_keys( get_object_vars( $this->fields ) );
+		foreach ( $fields as $field ) {
+			$obj->$field = $this->fields->get( $field );
+		}
 
-		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
 		$obj->name         = esc_html( $current['Name'] );
 		$obj->plugin_name  = esc_html( $current['Name'] );
 		$obj->author       = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $api_data->author->html_url ), esc_html( $api_data->author->login ) );
 		$obj->version      = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', $api_data->html_url, $api_data->tag_name );
 		$obj->last_updated = $api_data->published_at;
-		$obj->sections     = $sessions;
-		$obj->banners      = $this->fields->get( 'banners' );
-		$obj->tested       = $this->fields->get( 'tested' );
-		$obj->requires_php = $this->fields->get( 'requires_php' );
-		$obj->requires     = $this->fields->get( 'requires' );
+
+		if ( empty( $obj->sections ) ) {
+			$obj->sections = [
+				'description'  => $this->_get_content_text( $description_url ),
+				'installation' => $this->_get_content_text( $this->fields->get( 'installation_url' ) ),
+				'faq'          => $this->_get_content_text( $this->fields->get( 'faq_url' ) ),
+				'changelog'    => $this->_get_content_text( $this->fields->get( 'changelog_url' ) ),
+				'screenshots'  => $this->_get_content_text( $this->fields->get( 'screenshots_url' ) ),
+			];
+		}
 
 		$obj = apply_filters(
 			sprintf(

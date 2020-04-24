@@ -7,62 +7,214 @@
 
 namespace Inc2734\WP_GitHub_Plugin_Updater\App\Model;
 
+/**
+ * @see https://github.com/WordPress/WordPress/blob/master/wp-admin/includes/plugin-install.php#L67-L95
+ */
 class Fields {
 
 	/**
+	 * Whether to return the plugin short description.
+	 *
+	 * @var string|boolean
+	 */
+	public $short_description = true;
+
+	/**
+	 * Whether to return the plugin full description.
+	 *
+	 * @var string|boolean
+	 */
+	public $description = false;
+
+	/**
+	 * Whether to return the plugin readme sections: description, installation,
+   * FAQ, screenshots, other notes, and changelog.
+   *
+	 * @var array|boolean
+	 *   @var string description
+	 *   @var string installation
+	 *   @var string faq
+	 *   @var string screenshots
+	 *   @var string changelog
+	 *   @var string reviews
+	 *   @var string other_notes
+	 */
+	public $sections = false;
+
+	/**
+	 * Whether to return the 'Compatible up to' value.
+	 *
+	 * @var int|boolean
+	 */
+	public $tested = true;
+
+	/**
+	 * Whether to return the required WordPress version.
+	 *
+	 * @var int|boolean
+	 */
+	public $requires = true;
+
+	/**
+	 * Whether to return the required PHP version.
+	 *
+	 * @var int|boolean
+	 */
+	public $requires_php = true;
+
+	/**
+	 * Whether to return the rating in percent and total number of ratings.
+	 *
+	 * @var int|boolean
+	 */
+	public $rating = true;
+
+	/**
+	 * Whether to return the number of rating for each star (1-5).
+	 *
+	 * @var array|boolean
+	 */
+	public $ratings = true;
+
+	/**
+	 * Whether to return the download count.
+	 *
+	 * @var int|boolean
+	 */
+	public $downloaded = true;
+
+	/**
+	 * Whether to return the download link for the package.
+	 *
+	 * @var string|boolean
+	 */
+	public $downloadlink = true;
+
+	/**
+	 * Whether to return the date of the last update.
+	 *
+	 * @var string|boolean
+	 */
+	public $last_updated = true;
+
+	/**
+	 * Whether to return the date when the plugin was added to the wordpress.org repository.
+	 *
+	 * @var string|boolean
+	 */
+	public $added = true;
+
+	/**
+	 * Whether to return the assigned tags.
+	 *
+	 * @var array|boolean
+	 */
+	public $tags = true;
+
+	/**
+	 * Whether to return the WordPress compatibility list.
+	 *
+	 * @var array|boolean
+	 */
+	public $compatibility = true;
+
+	/**
+	 * Whether to return the plugin homepage link.
+	 *
+	 * @var string|boolean
+	 */
+	public $homepage = true;
+
+	/**
+	 * Whether to return the list of all available versions.
+	 *
+	 * @var array|boolean
+	 */
+	public $versions = false;
+
+	/**
+	 * Whether to return the donation link.
+	 *
+	 * @var string|boolean
+	 */
+	public $donate_link = true;
+
+	/**
+	 * Whether to return the plugin reviews.
+	 *
+	 * @var string|boolean
+	 */
+	public $reviews = false;
+
+	/**
+	 * Whether to return the banner images links.
+	 *
+	 * @var array|boolean
+	 */
+	public $banners = false;
+
+	/**
+	 * Whether to return the icon links.
+	 *
+	 * @var array|boolean
+	 */
+	public $icons = false;
+
+	/**
+	 * Whether to return the number of active installations.
+	 *
+	 * @var int|boolean
+	 */
+	public $active_installs = false;
+
+	/**
+	 * Whether to return the assigned group.
+	 *
+	 * @var string|boolean
+	 */
+	public $group = false;
+
+	/**
+	 * Whether to return the list of contributors.
+	 *
+	 * @var array|boolean
+	 */
+	public $contributors = false;
+
+	/**
+	 * Extend
+	 *
 	 * @var string
 	 */
-	protected $homepage = '';
+	public $description_url = '';
 
 	/**
-	 * @var null|string
-	 */
-	protected $tested = null;
-
-	/**
-	 * @var array
-	 */
-	protected $icons = [];
-
-	/**
+	 * Extend
+	 *
 	 * @var string
 	 */
-	protected $description_url = '';
+	public $installation_url = '';
 
 	/**
+	 * Extend
+	 *
 	 * @var string
 	 */
-	protected $installation_url = '';
+	public $faq_url = '';
 
 	/**
+	 * Extend
+	 *
 	 * @var string
 	 */
-	protected $faq_url = '';
+	public $screenshots_url = '';
 
 	/**
+	 * Extend
+	 *
 	 * @var string
 	 */
-	protected $changelog_url = '';
-
-	/**
-	 * @var string
-	 */
-	protected $screenshots_url = '';
-
-	/**
-	 * @var array
-	 */
-	protected $banners = [];
-
-	/**
-	 * @var null|string
-	 */
-	protected $requires_php = null;
-
-	/**
-	 * @var null|string
-	 */
-	protected $requires = null;
+	public $changelog_url = '';
 
 	/**
 	 * @param array $fields
