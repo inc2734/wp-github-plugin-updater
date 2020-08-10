@@ -73,7 +73,9 @@ class Bootstrap {
 	}
 
 	/**
-	 * Overwirte site_transient_update_plugins from GitHub API
+	 * Overwirte site_transient_update_plugins
+	 *
+	 * @see https://make.wordpress.org/core/2020/07/30/recommended-usage-of-the-updates-api-to-support-the-auto-updates-ui-for-plugins-and-themes-in-wordpress-5-5/
 	 *
 	 * @param false|array $transient
 	 * @return false|array
@@ -87,15 +89,11 @@ class Bootstrap {
 		$api_data = $this->_get_transient_api_data();
 
 		if ( is_wp_error( $api_data ) ) {
-			$this->_set_notice_error_about_github_api();
+			error_log( $api_data->get_error_message() );
 			return $transient;
 		}
 
 		if ( ! isset( $api_data->tag_name ) ) {
-			return $transient;
-		}
-
-		if ( ! $this->_should_update( $current['Version'], $api_data->tag_name ) ) {
 			return $transient;
 		}
 
@@ -106,27 +104,41 @@ class Bootstrap {
 			return $transient;
 		}
 
-		$transient_response = [
-			'slug'         => $this->plugin_name,
+		$update = (object) [
+			'id'           => $this->user_name . '/' . $this->repository . '/' . $this->plugin_name,
+			'slug'         => preg_replace( '|^([^/]+)?/.+$|', '$1', $this->plugin_name ),
 			'plugin'       => $this->plugin_name,
 			'new_version'  => $api_data->tag_name,
 			'url'          => $this->fields->get( 'homepage' ),
 			'package'      => $package,
 			'icons'        => $this->fields->get( 'icons' ),
 			'banners'      => $this->fields->get( 'banners' ),
-			'requires_php' => $this->fields->get( 'requires_php' ) ? $this->fields->get( 'requires_php' ) : $current['RequiresPHP'],
 			'tested'       => $this->fields->get( 'tested' ) ? $this->fields->get( 'tested' ) : $current['Tested up to'],
+			'requires_php' => $this->fields->get( 'requires_php' ) ? $this->fields->get( 'requires_php' ) : $current['RequiresPHP'],
 		];
 
-		$transient_response = apply_filters(
+		$update = apply_filters(
 			sprintf(
 				'inc2734_github_plugin_updater_transient_response_%1$s/%2$s',
 				$this->user_name,
 				$this->repository
 			),
-			$transient_response
+			$update
 		);
-		$transient->response[ $this->plugin_name ] = (object) $transient_response;
+
+		if ( ! $this->_should_update( $current['Version'], $api_data->tag_name ) ) {
+			if ( false === $transient ) {
+				$transient = new stdClass();
+				$transient->no_update = [];
+			}
+			$transient->no_update[ $this->plugin_name ] = $update;
+		} else {
+			if ( false === $transient ) {
+				$transient = new stdClass();
+				$transient->response = [];
+			}
+			$transient->response[ $this->plugin_name ] = $update;
+		}
 
 		return $transient;
 	}
@@ -201,30 +213,6 @@ class Bootstrap {
 	}
 
 	/**
-	 * Set notice error about GitHub API using admin_notice hook
-	 *
-	 * @return void
-	 */
-	protected function _set_notice_error_about_github_api() {
-		add_action(
-			'admin_notices',
-			function() {
-				$api_data = $this->_get_transient_api_data();
-				if ( ! is_wp_error( $api_data ) ) {
-					return;
-				}
-				?>
-				<div class="notice notice-error">
-					<p>
-						<?php echo esc_html( $api_data->get_error_message() ); ?>
-					</p>
-				</div>
-				<?php
-			}
-		);
-	}
-
-	/**
 	 * Return URL of new zip file
 	 *
 	 * @param object $remote Data from GitHub API
@@ -245,11 +233,21 @@ class Bootstrap {
 
 		if ( ! $url && $tag_name ) {
 			$url = sprintf(
-				'https://github.com/%1$s/%2$s/archive/%3$s.zip',
+				'https://github.com/%1$s/%2$s/releases/download/%3$s/%2$s.zip',
 				$this->user_name,
 				$this->repository,
 				$tag_name
 			);
+
+			$http_status_code = $this->_get_http_status_code( $url );
+			if ( ! $url || ! in_array( $http_status_code, [ 200, 302 ] ) ) {
+				$url = sprintf(
+					'https://github.com/%1$s/%2$s/archive/%3$s.zip',
+					$this->user_name,
+					$this->repository,
+					$tag_name
+				);
+			}
 		}
 
 		return apply_filters(
@@ -274,7 +272,7 @@ class Bootstrap {
 		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
 		$transient = get_transient( $transient_name );
 
-		if ( false !== get_transient( $transient_name ) ) {
+		if ( false !== $transient ) {
 			return $transient;
 		}
 
@@ -358,6 +356,7 @@ class Bootstrap {
 			),
 			[
 				'user-agent' => 'WordPress/' . $wp_version,
+				'timeout'    => 30,
 				'headers'    => [
 					'Accept-Encoding' => '',
 				],
@@ -404,6 +403,7 @@ class Bootstrap {
 			$url,
 			[
 				'user-agent' => 'WordPress/' . $wp_version,
+				'timeout'    => 30,
 				'headers'    => [
 					'Accept-Encoding' => '',
 				],

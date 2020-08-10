@@ -47,6 +47,7 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 		$expected  = new stdClass();
 		$expected->response = [
 			'hello.php' => (object) [
+				'id'           => 'inc2734/dummy-hello-dolly/hello.php',
 				'plugin'       => 'hello.php',
 				'new_version'  => '1000000',
 				'url'          => false,
@@ -125,11 +126,11 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 		$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dolly' );
 
 		$this->assertEquals(
-			302,
+			200,
 			$method->invokeArgs(
 				$updater,
 				[
-					'https://github.com/inc2734/dummy-hello-dolly/archive/1000000.zip',
+					'https://example.com',
 				]
 			)
 		);
