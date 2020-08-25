@@ -63,6 +63,7 @@ class Bootstrap {
 		add_filter( 'upgrader_pre_install', [ $upgrader, 'pre_install' ], 10, 2 );
 		add_filter( 'upgrader_source_selection', [ $upgrader, 'source_selection' ], 10, 4 );
 		add_filter( 'plugins_api', [ $this, '_plugins_api' ], 10, 3 );
+		add_action( 'upgrader_process_complete', [ $this, '_upgrader_process_complete' ], 10, 2 );
 	}
 
 	public function _extra_plugin_headers( $headers ) {
@@ -73,7 +74,7 @@ class Bootstrap {
 	}
 
 	/**
-	 * Overwirte site_transient_update_plugins
+	 * Overwrite site_transient_update_plugins
 	 *
 	 * @see https://make.wordpress.org/core/2020/07/30/recommended-usage-of-the-updates-api-to-support-the-auto-updates-ui-for-plugins-and-themes-in-wordpress-5-5/
 	 *
@@ -213,6 +214,22 @@ class Bootstrap {
 	}
 
 	/**
+	 * Fires when the upgrader process is complete.
+	 *
+	 * @param object $upgrader_object WP_Upgrader
+	 * @param object $hook_extra Array of bulk item update data
+	 */
+	public function _upgrader_process_complete( $upgrader_object, $hook_extra ) {
+		if ( 'update' === $hook_extra['action'] && 'plugin' === $hook_extra['type'] ) {
+			foreach ( $hook_extra['plugins'] as $plugin ) {
+				if ( $plugin === $this->plugin_name ) {
+					$this->_delete_transient_api_data();
+				}
+			}
+		}
+	}
+
+	/**
 	 * Return URL of new zip file
 	 *
 	 * @param object $remote Data from GitHub API
@@ -279,6 +296,14 @@ class Bootstrap {
 		$api_data = $this->_get_github_api_data();
 		set_transient( $transient_name, $api_data, 60 * 5 );
 		return $api_data;
+	}
+
+	/**
+	 * Delete the data from the Transient API.
+	 */
+	protected function _delete_transient_api_data() {
+		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
+		delete_transient( $transient_name );
 	}
 
 	/**
