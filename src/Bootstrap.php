@@ -57,6 +57,7 @@ class Bootstrap {
 	 */
 	public function __construct( $plugin_name, $user_name, $repository, array $fields = [] ) {
 		$this->plugin_name = $plugin_name;
+		$this->slug        = preg_replace( '|^([^/]+)?/.+$|', '$1', $plugin_name );
 		$this->user_name   = $user_name;
 		$this->repository  = $repository;
 		$this->fields      = new Fields( $fields );
@@ -119,7 +120,7 @@ class Bootstrap {
 			'new_version'  => $api_data->tag_name,
 			'url'          => $this->fields->get( 'homepage' ),
 			'package'      => $package,
-			'icons'        => $this->fields->get( 'icons' ),
+			'icons'        => $this->fields->get( 'icons' ) ? (array) $this->fields->get( 'icons' ) : false,
 			'banners'      => $this->fields->get( 'banners' ),
 			'tested'       => $this->fields->get( 'tested' ) ? $this->fields->get( 'tested' ) : $current['Tested up to'],
 			'requires_php' => $this->fields->get( 'requires_php' ) ? $this->fields->get( 'requires_php' ) : $current['RequiresPHP'],
@@ -203,8 +204,10 @@ class Bootstrap {
 				'description'  => $this->_get_content_text( $description_url ),
 				'installation' => $this->_get_content_text( $this->fields->get( 'installation_url' ) ),
 				'faq'          => $this->_get_content_text( $this->fields->get( 'faq_url' ) ),
-				'changelog'    => $this->_get_content_text( $this->fields->get( 'changelog_url' ) ),
 				'screenshots'  => $this->_get_content_text( $this->fields->get( 'screenshots_url' ) ),
+				'changelog'    => $this->_get_content_text( $this->fields->get( 'changelog_url' ) ),
+				'reviews'      => $this->_get_content_text( $this->fields->get( 'reviews_url' ) ),
+				'other_notes'  => $this->_get_content_text( $this->fields->get( 'other_notes_url' ) ),
 			];
 		}
 

@@ -217,6 +217,20 @@ class Fields {
 	public $changelog_url = '';
 
 	/**
+	 * Extend
+	 *
+	 * @var string
+	 */
+	public $reviews_url = '';
+
+	/**
+	 * Extend
+	 *
+	 * @var string
+	 */
+	public $other_notes_url = '';
+
+	/**
 	 * @param array $fields
 	 */
 	public function __construct( array $fields ) {
