@@ -216,8 +216,8 @@ class Bootstrap {
 	/**
 	 * Fires when the upgrader process is complete.
 	 *
-	 * @param object $upgrader_object WP_Upgrader
-	 * @param object $hook_extra Array of bulk item update data
+	 * @param WP_Upgrader $upgrader_object
+	 * @param array $hook_extra
 	 */
 	public function _upgrader_process_complete( $upgrader_object, $hook_extra ) {
 		if ( 'update' === $hook_extra['action'] && 'plugin' === $hook_extra['type'] ) {
@@ -227,6 +227,14 @@ class Bootstrap {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Delete the data from the Transient API.
+	 */
+	protected function _delete_transient_api_data() {
+		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
+		delete_transient( $transient_name );
 	}
 
 	/**
@@ -296,14 +304,6 @@ class Bootstrap {
 		$api_data = $this->_get_github_api_data();
 		set_transient( $transient_name, $api_data, 60 * 5 );
 		return $api_data;
-	}
-
-	/**
-	 * Delete the data from the Transient API.
-	 */
-	protected function _delete_transient_api_data() {
-		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
-		delete_transient( $transient_name );
 	}
 
 	/**
