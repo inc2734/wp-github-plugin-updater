@@ -22,6 +22,13 @@ class Bootstrap {
 	protected $plugin_name;
 
 	/**
+	 * The plugin slug
+	 *
+	 * @var string
+	 */
+	protected $slug;
+
+	/**
 	 * GitHub user name
 	 *
 	 * @var string
@@ -107,7 +114,7 @@ class Bootstrap {
 
 		$update = (object) [
 			'id'           => $this->user_name . '/' . $this->repository . '/' . $this->plugin_name,
-			'slug'         => preg_replace( '|^([^/]+)?/.+$|', '$1', $this->plugin_name ),
+			'slug'         => $this->slug,
 			'plugin'       => $this->plugin_name,
 			'new_version'  => $api_data->tag_name,
 			'url'          => $this->fields->get( 'homepage' ),
@@ -157,7 +164,7 @@ class Bootstrap {
 			return $obj;
 		}
 
-		if ( ! isset( $arg->slug ) || $arg->slug !== $this->plugin_name ) {
+		if ( ! isset( $arg->slug ) || $arg->slug !== $this->slug ) {
 			return $obj;
 		}
 
