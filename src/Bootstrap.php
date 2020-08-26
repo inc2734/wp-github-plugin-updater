@@ -11,6 +11,8 @@ use WP_Error;
 use stdClass;
 use Parsedown;
 use Inc2734\WP_GitHub_Plugin_Updater\App\Model\Fields;
+use Inc2734\WP_GitHub_Plugin_Updater\App\Model\GitHubReleases;
+use Inc2734\WP_GitHub_Plugin_Updater\App\Model\GitHubRepositoryContent;
 
 class Bootstrap {
 
@@ -50,6 +52,16 @@ class Bootstrap {
 	protected $fields;
 
 	/**
+	 * @var GitHubReleases
+	 */
+	protected $github_releases;
+
+	/**
+	 * @var GitHubRepositoryContent
+	 */
+	protected $github_repository_content;
+
+	/**
 	 * @param string $plugin_name
 	 * @param string $user_name
 	 * @param string $repository
@@ -65,6 +77,8 @@ class Bootstrap {
 		load_textdomain( 'inc2734-wp-github-plugin-updater', __DIR__ . '/languages/' . get_locale() . '.mo' );
 
 		$upgrader = new App\Model\Upgrader( $plugin_name );
+		$this->github_releases = new GitHubReleases( $plugin_name, $user_name, $repository );
+		$this->github_repository_content = new GitHubRepositoryContent( $plugin_name, $user_name, $repository );
 
 		add_filter( 'extra_plugin_headers', [ $this, '_extra_plugin_headers' ] );
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, '_pre_set_site_transient_update_plugins' ] );
@@ -94,36 +108,34 @@ class Bootstrap {
 			return $transient;
 		}
 
-		$current  = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		$api_data = $this->_get_transient_api_data();
-
-		if ( is_wp_error( $api_data ) ) {
-			error_log( $api_data->get_error_message() );
+		$response = $this->github_releases->get();
+		if ( is_wp_error( $response ) ) {
+			error_log( $response->get_error_message() );
 			return $transient;
 		}
 
-		if ( ! isset( $api_data->tag_name ) ) {
+		if ( ! isset( $response->tag_name ) ) {
 			return $transient;
 		}
 
-		$package = $this->_get_zip_url( $api_data );
-		$http_status_code = $this->_get_http_status_code( $package );
-		if ( ! $package || ! in_array( $http_status_code, [ 200, 302 ] ) ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $package );
+		if ( ! $response->package ) {
 			return $transient;
 		}
+
+		$remote = $this->github_repository_content->get_headers();
 
 		$update = (object) [
 			'id'           => $this->user_name . '/' . $this->repository . '/' . $this->plugin_name,
 			'slug'         => $this->slug,
 			'plugin'       => $this->plugin_name,
-			'new_version'  => $api_data->tag_name,
+			'new_version'  => $response->tag_name,
 			'url'          => $this->fields->get( 'homepage' ),
-			'package'      => $package,
+			'package'      => $response->package,
 			'icons'        => $this->fields->get( 'icons' ) ? (array) $this->fields->get( 'icons' ) : false,
 			'banners'      => $this->fields->get( 'banners' ),
-			'tested'       => $this->fields->get( 'tested' ) ? $this->fields->get( 'tested' ) : $current['Tested up to'],
-			'requires_php' => $this->fields->get( 'requires_php' ) ? $this->fields->get( 'requires_php' ) : $current['RequiresPHP'],
+			'tested'       => $this->fields->get( 'tested' ) ? $this->fields->get( 'tested' ) : $remote['Tested up to'],
+			'requires_php' => $this->fields->get( 'requires_php' ) ? $this->fields->get( 'requires_php' ) : $remote['RequiresPHP'],
+			'requires'     => $this->fields->get( 'requires' ) ? $this->fields->get( 'requires' ) : $remote['RequiresWP'],
 		];
 
 		$update = apply_filters(
@@ -135,7 +147,8 @@ class Bootstrap {
 			$update
 		);
 
-		if ( ! $this->_should_update( $current['Version'], $api_data->tag_name ) ) {
+		$current  = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+		if ( ! $this->_should_update( $current['Version'], $response->tag_name ) ) {
 			if ( false === $transient ) {
 				$transient = new stdClass();
 				$transient->no_update = [];
@@ -169,23 +182,29 @@ class Bootstrap {
 			return $obj;
 		}
 
-		$api_data = $this->_get_transient_api_data();
-		if ( is_wp_error( $api_data ) ) {
+		$response = $this->github_releases->get();
+		if ( is_wp_error( $response ) ) {
 			return $obj;
 		}
 
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+		$remote = $this->github_repository_content->get_headers();
 
 		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
 		$obj->name         = esc_html( $current['Name'] );
 		$obj->plugin_name  = esc_html( $current['Name'] );
-		$obj->author       = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $api_data->author->html_url ), esc_html( $api_data->author->login ) );
-		$obj->version      = sprintf( '<a href="%1$s" target="_blank">%2$s</a>', $api_data->html_url, $api_data->tag_name );
-		$obj->last_updated = $api_data->published_at;
-		$obj->requires     = esc_html( $current['RequiresWP'] );
-		$obj->requires_php = esc_html( $current['RequiresPHP'] );
-		$obj->tested       = esc_html( $current['Tested up to'] );
+		$obj->author       = ! empty( $response->author ) ?
+			sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $response->author->html_url ), esc_html( $response->author->login ) ) :
+			null;
+		$obj->version      = ! empty( $response->html_url ) && ! empty( $response->tag_name ) ?
+			sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $response->html_url ), esc_html( $response->tag_name ) ) :
+			null;
+		$obj->last_updated = $response->published_at;
+		$obj->requires     = esc_html( $remote['RequiresWP'] );
+		$obj->requires_php = esc_html( $remote['RequiresPHP'] );
+		$obj->tested       = esc_html( $remote['Tested up to'] );
+		$obj->external     = true;
 
 		$fields = array_keys( get_object_vars( $this->fields ) );
 		foreach ( $fields as $field ) {
@@ -233,170 +252,11 @@ class Bootstrap {
 		if ( 'update' === $hook_extra['action'] && 'plugin' === $hook_extra['type'] ) {
 			foreach ( $hook_extra['plugins'] as $plugin ) {
 				if ( $plugin === $this->plugin_name ) {
-					$this->_delete_transient_api_data();
+					$this->github_releases->delete_transient();
+					$this->github_repository_content->delete_transient();
 				}
 			}
 		}
-	}
-
-	/**
-	 * Delete the data from the Transient API.
-	 */
-	protected function _delete_transient_api_data() {
-		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
-		delete_transient( $transient_name );
-	}
-
-	/**
-	 * Return URL of new zip file
-	 *
-	 * @param object $remote Data from GitHub API
-	 * @return string
-	 */
-	protected function _get_zip_url( $remote ) {
-		$url = false;
-
-		if ( ! empty( $remote->assets ) && is_array( $remote->assets ) ) {
-			if ( ! empty( $remote->assets[0] ) && is_object( $remote->assets[0] ) ) {
-				if ( ! empty( $remote->assets[0]->browser_download_url ) ) {
-					$url = $remote->assets[0]->browser_download_url;
-				}
-			}
-		}
-
-		$tag_name = isset( $remote->tag_name ) ? $remote->tag_name : null;
-
-		if ( ! $url && $tag_name ) {
-			$url = sprintf(
-				'https://github.com/%1$s/%2$s/releases/download/%3$s/%2$s.zip',
-				$this->user_name,
-				$this->repository,
-				$tag_name
-			);
-
-			$http_status_code = $this->_get_http_status_code( $url );
-			if ( ! $url || ! in_array( $http_status_code, [ 200, 302 ] ) ) {
-				$url = sprintf(
-					'https://github.com/%1$s/%2$s/archive/%3$s.zip',
-					$this->user_name,
-					$this->repository,
-					$tag_name
-				);
-			}
-		}
-
-		return apply_filters(
-			sprintf(
-				'inc2734_github_plugin_updater_zip_url_%1$s/%2$s',
-				$this->user_name,
-				$this->repository
-			),
-			$url,
-			$this->user_name,
-			$this->repository,
-			$tag_name
-		);
-	}
-
-	/**
-	 * Return the data from the Transient API or GitHub API.
-	 *
-	 * @return object|WP_Error
-	 */
-	protected function _get_transient_api_data() {
-		$transient_name = sprintf( 'wp_github_plugin_updater_%1$s', $this->plugin_name );
-		$transient = get_transient( $transient_name );
-
-		if ( false !== $transient ) {
-			return $transient;
-		}
-
-		$api_data = $this->_get_github_api_data();
-		set_transient( $transient_name, $api_data, 60 * 5 );
-		return $api_data;
-	}
-
-	/**
-	 * Return the data from the GitHub API.
-	 *
-	 * @return object|WP_Error
-	 */
-	protected function _get_github_api_data() {
-		global $pagenow;
-		$response = $this->_request_github_api();
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( '' === $response_code ) {
-			return null;
-		}
-
-		$body = json_decode( wp_remote_retrieve_body( $response ) );
-		if ( 200 == $response_code ) {
-			return $body;
-		}
-
-		$message = null !== $body && property_exists( $body, 'message' )
-			? $body->message
-			: __( 'Failed to get update response.', 'inc2734-wp-github-plugin-updater' );
-
-		$current       = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		$error_message = sprintf(
-			/* Translators: 1: Plugin name, 2: Error message  */
-			__( '[%1$s] %2$s', 'inc2734-wp-github-plugin-updater' ),
-			$current['Name'],
-			$message
-		);
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message );
-		}
-
-		if ( ! in_array( $pagenow, [ 'update-core.php', 'plugins.php' ] ) ) {
-			return null;
-		}
-
-		return new WP_Error(
-			$response_code,
-			$error_message
-		);
-	}
-
-	/**
-	 * Get request to GitHub API
-	 *
-	 * @return json|WP_Error
-	 */
-	protected function _request_github_api() {
-		global $wp_version;
-
-		$url = sprintf(
-			'https://api.github.com/repos/%1$s/%2$s/releases/latest',
-			$this->user_name,
-			$this->repository
-		);
-
-		return wp_remote_get(
-			apply_filters(
-				sprintf(
-					'inc2734_github_plugin_updater_request_url_%1$s/%2$s',
-					$this->user_name,
-					$this->repository
-				),
-				$url,
-				$this->user_name,
-				$this->repository
-			),
-			[
-				'user-agent' => 'WordPress/' . $wp_version,
-				'timeout'    => 30,
-				'headers'    => [
-					'Accept-Encoding' => '',
-				],
-			]
-		);
 	}
 
 	/**
@@ -423,29 +283,6 @@ class Bootstrap {
 			$this->_sanitize_version( $remote_version ),
 			'<'
 		);
-	}
-
-	/**
-	 * Return http status code from $url
-	 *
-	 * @param string $url
-	 * @return int
-	 */
-	protected function _get_http_status_code( $url ) {
-		global $wp_version;
-
-		$response = wp_remote_head(
-			$url,
-			[
-				'user-agent' => 'WordPress/' . $wp_version,
-				'timeout'    => 30,
-				'headers'    => [
-					'Accept-Encoding' => '',
-				],
-			]
-		);
-
-		return wp_remote_retrieve_response_code( $response );
 	}
 
 	/**
