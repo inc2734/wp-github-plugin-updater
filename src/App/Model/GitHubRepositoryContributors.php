@@ -35,8 +35,6 @@ class GitHubRepositoryContributors {
 		$response = $this->_request();
 		$response = $this->_retrieve( $response );
 
-		set_transient( $this->transient_name, $response, 0 );
-
 		$contributors = [];
 
 		if ( null !== $response ) {
@@ -49,6 +47,8 @@ class GitHubRepositoryContributors {
 			}
 		}
 
+		set_transient( $this->transient_name, $contributors, 0 );
+
 		return $contributors;
 	}
 
@@ -57,21 +57,45 @@ class GitHubRepositoryContributors {
 	}
 
 	protected function _retrieve( $response ) {
+		global $pagenow;
+
 		if ( is_wp_error( $response ) ) {
 			return null;
 		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( 200 !== $response_code ) {
+		if ( '' === $response_code ) {
 			return null;
 		}
 
 		$body = json_decode( wp_remote_retrieve_body( $response ) );
-		if ( ! isset( $body->content ) ) {
+		if ( 200 == $response_code ) {
+			return $body;
+		}
+
+		$message = null !== $body && property_exists( $body, 'message' )
+			? $body->message
+			: __( 'Failed to get update response.', 'inc2734-wp-github-plugin-updater' );
+
+		$error_message = sprintf(
+			/* Translators: 1: Plugin name, 2: Error message  */
+			__( '[%1$s] %2$s', 'inc2734-wp-github-plugin-updater' ),
+			$this->plugin_name,
+			$message
+		);
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message );
+		}
+
+		if ( ! in_array( $pagenow, [ 'update-core.php', 'plugins.php' ] ) ) {
 			return null;
 		}
 
-		return base64_decode( $body->content );
+		return new WP_Error(
+			$response_code,
+			$error_message
+		);
 	}
 
 	protected function _request() {
