@@ -190,21 +190,30 @@ class Bootstrap {
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
 		$remote = $this->github_repository_content->get_headers();
 
-		$obj               = new stdClass();
-		$obj->slug         = $this->plugin_name;
-		$obj->name         = esc_html( $current['Name'] );
-		$obj->plugin_name  = esc_html( $current['Name'] );
-		$obj->author       = ! empty( $response->author ) ?
-			sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $response->author->html_url ), esc_html( $response->author->login ) ) :
+		$obj                = new stdClass();
+		$obj->slug          = $this->plugin_name;
+		$obj->name          = esc_html( $current['Name'] );
+		$obj->plugin_name   = esc_html( $current['Name'] );
+		$obj->author        = ! empty( $response->author ) ?
+			sprintf(
+				'<a href="%1$s" target="_blank">%2$s</a>',
+				esc_url( $response->author->html_url ),
+				esc_html( $response->author->login )
+			) :
 			null;
-		$obj->version      = ! empty( $response->html_url ) && ! empty( $response->tag_name ) ?
-			sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( $response->html_url ), esc_html( $response->tag_name ) ) :
+		$obj->version       = ! empty( $response->html_url ) && ! empty( $response->tag_name ) ?
+			sprintf(
+				'<a href="%1$s" target="_blank">%2$s</a>',
+				esc_url( $response->html_url ),
+				esc_html( $response->tag_name )
+			) :
 			null;
-		$obj->last_updated = $response->published_at;
-		$obj->requires     = esc_html( $remote['RequiresWP'] );
-		$obj->requires_php = esc_html( $remote['RequiresPHP'] );
-		$obj->tested       = esc_html( $remote['Tested up to'] );
-		$obj->external     = true;
+		$obj->last_updated  = $response->published_at;
+		$obj->requires      = esc_html( $remote['RequiresWP'] );
+		$obj->requires_php  = esc_html( $remote['RequiresPHP'] );
+		$obj->tested        = esc_html( $remote['Tested up to'] );
+		$obj->external      = true;
+		$obj->download_link = ! empty( $response->package ) ? $response->package : false;
 
 		$fields = array_keys( get_object_vars( $this->fields ) );
 		foreach ( $fields as $field ) {
