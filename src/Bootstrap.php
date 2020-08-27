@@ -233,6 +233,14 @@ class Bootstrap {
 		$obj->external      = true;
 		$obj->download_link = ! empty( $response->package ) ? $response->package : false;
 
+		if ( ! empty( $response->assets ) && is_array( $response->assets ) ) {
+			if ( ! empty( $response->assets[0] ) && is_object( $response->assets[0] ) ) {
+				if ( ! empty( $response->assets[0]->download_count ) ) {
+					$obj->active_installs = $response->assets[0]->download_count;
+				}
+			}
+		}
+
 		$fields = array_keys( get_object_vars( $this->fields ) );
 		foreach ( $fields as $field ) {
 			if ( isset( $obj->$field ) ) {
