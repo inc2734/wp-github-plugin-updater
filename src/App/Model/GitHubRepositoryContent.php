@@ -48,23 +48,26 @@ class GitHubRepositoryContent {
 	 * @see https://developer.wordpress.org/reference/functions/get_plugin_data/
 	 */
 	public function get_headers() {
-		$content = $this->get();
-		$content = substr( $content, 0, 8 * KB_IN_BYTES );
-		$content = str_replace( "\r", "\n", $content );
-
 		$headers = [];
 
-		$target_headers = array(
-			'RequiresWP'   => 'Requires at least',
-			'RequiresPHP'  => 'Requires PHP',
-			'Tested up to' => 'Tested up to',
-		);
+		$content = $this->get();
 
-		foreach ( $target_headers as $field => $regex ) {
-			if ( preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $content, $match ) && $match[1] ) {
-				$headers[ $field ] = _cleanup_header_comment( $match[1] );
-			} else {
-				$headers[ $field ] = '';
+		if ( null !== $content ) {
+			$content = substr( $content, 0, 8 * KB_IN_BYTES );
+			$content = str_replace( "\r", "\n", $content );
+
+			$target_headers = array(
+				'RequiresWP'   => 'Requires at least',
+				'RequiresPHP'  => 'Requires PHP',
+				'Tested up to' => 'Tested up to',
+			);
+
+			foreach ( $target_headers as $field => $regex ) {
+				if ( preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $content, $match ) && $match[1] ) {
+					$headers[ $field ] = _cleanup_header_comment( $match[1] );
+				} else {
+					$headers[ $field ] = '';
+				}
 			}
 		}
 

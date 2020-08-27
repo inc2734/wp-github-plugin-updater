@@ -13,6 +13,7 @@ use Parsedown;
 use Inc2734\WP_GitHub_Plugin_Updater\App\Model\Fields;
 use Inc2734\WP_GitHub_Plugin_Updater\App\Model\GitHubReleases;
 use Inc2734\WP_GitHub_Plugin_Updater\App\Model\GitHubRepositoryContent;
+use Inc2734\WP_GitHub_Plugin_Updater\App\Model\GitHubRepositoryContributors;
 
 class Bootstrap {
 
@@ -62,6 +63,11 @@ class Bootstrap {
 	protected $github_repository_content;
 
 	/**
+	 * @var GitHubRepositoryContributors
+	 */
+	protected $github_repository_contributors;
+
+	/**
 	 * @param string $plugin_name
 	 * @param string $user_name
 	 * @param string $repository
@@ -79,6 +85,7 @@ class Bootstrap {
 		$upgrader = new App\Model\Upgrader( $plugin_name );
 		$this->github_releases = new GitHubReleases( $plugin_name, $user_name, $repository );
 		$this->github_repository_content = new GitHubRepositoryContent( $plugin_name, $user_name, $repository );
+		$this->github_repository_contributors = new GitHubRepositoryContributors( $plugin_name, $user_name, $repository );
 
 		add_filter( 'extra_plugin_headers', [ $this, '_extra_plugin_headers' ] );
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, '_pre_set_site_transient_update_plugins' ] );
@@ -240,6 +247,9 @@ class Bootstrap {
 				}
 			}
 		}
+
+		$contributors = $this->github_repository_contributors->get();
+		$obj->contributors = $contributors;
 
 		$fields = array_keys( get_object_vars( $this->fields ) );
 		foreach ( $fields as $field ) {
