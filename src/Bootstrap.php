@@ -237,8 +237,6 @@ class Bootstrap {
 		$obj->requires      = esc_html( $remote['RequiresWP'] );
 		$obj->requires_php  = esc_html( $remote['RequiresPHP'] );
 		$obj->tested        = esc_html( $remote['Tested up to'] );
-		$obj->external      = true;
-		$obj->download_link = ! empty( $response->package ) ? $response->package : false;
 
 		if ( ! empty( $response->assets ) && is_array( $response->assets ) ) {
 			if ( ! empty( $response->assets[0] ) && is_object( $response->assets[0] ) ) {
@@ -284,6 +282,9 @@ class Bootstrap {
 			$obj,
 			$response
 		);
+
+		$obj->external      = true;
+		$obj->download_link = false;
 
 		return $obj;
 	}
