@@ -245,7 +245,8 @@ class Bootstrap {
 				$this->user_name,
 				$this->repository
 			),
-			$obj
+			$obj,
+			$response
 		);
 
 		return $obj;

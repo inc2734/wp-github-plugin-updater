@@ -127,7 +127,7 @@ Customize fields of `plugins_api`.
 ```
 add_filter(
   'inc2734_github_plugin_updater_plugins_api_inc2734/snow-monkey-blocks',
-  function( $obj ) {
+  function( $obj, $response ) {
     return $obj;
   }
 );
