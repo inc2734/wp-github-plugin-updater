@@ -132,3 +132,18 @@ add_filter(
   }
 );
 ```
+
+### inc2734_github_plugin_updater_contents_url_<$user_name>/<$repository>
+
+Customize contents api url.
+
+```
+add_filter(
+  'inc2734_github_plugin_updater_contents_url_inc2734/snow-monkey-blocks',
+  function( $url, $user_name, $repository, $plugin_name ) {
+    return $url;
+  },
+  10,
+  4
+);
+```

@@ -97,6 +97,18 @@ class GitHubRepositoryContent {
 			basename( $this->plugin_name )
 		);
 
+		$url = apply_filters(
+			sprintf(
+				'inc2734_github_plugin_updater_contents_url_%1$s/%2$s',
+				$this->user_name,
+				$this->repository
+			),
+			$url,
+			$this->user_name,
+			$this->repository,
+			basename( $this->plugin_name )
+		);
+
 		return Requester::request( $url );
 	}
 }
