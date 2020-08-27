@@ -52,7 +52,7 @@ $updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap(
 ## Filter hooks
 ### inc2734_github_plugin_updater_zip_url_<$user_name>/<$repository>
 
-Customize downloaded api url.
+Customize downloaded package url.
 
 ```
 add_filter(
@@ -84,7 +84,7 @@ add_filter(
 
 **Obsolete from v2.0.0**
 
-Customize downloaded api url.
+Customize downloaded package url.
 
 ```
 add_filter(

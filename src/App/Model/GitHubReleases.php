@@ -146,13 +146,7 @@ class GitHubReleases {
 			return false;
 		}
 
-		$http_status_code = $this->_get_http_status_code( $url );
-		if ( ! in_array( $http_status_code, [ 200, 302 ] ) ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $url );
-			return false;
-		}
-
-		return apply_filters(
+		$url = apply_filters(
 			sprintf(
 				'inc2734_github_plugin_updater_zip_url_%1$s/%2$s',
 				$this->user_name,
@@ -163,6 +157,14 @@ class GitHubReleases {
 			$this->repository,
 			$tag_name
 		);
+
+		$http_status_code = $this->_get_http_status_code( $url );
+		if ( ! in_array( $http_status_code, [ 200, 302 ] ) ) {
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $url );
+			return false;
+		}
+
+		return $url;
 	}
 
 	/**
