@@ -124,6 +124,15 @@ class Bootstrap {
 
 		$remote = $this->github_repository_content->get_headers();
 
+		$remote = apply_filters(
+			sprintf(
+				'inc2734_github_plugin_updater_remote_api_%1$s/%2$s',
+				$this->user_name,
+				$this->repository
+			),
+			$remote
+		);
+
 		$update = (object) [
 			'id'           => $this->user_name . '/' . $this->repository . '/' . $this->plugin_name,
 			'slug'         => $this->slug,
@@ -189,6 +198,15 @@ class Bootstrap {
 
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
 		$remote = $this->github_repository_content->get_headers();
+
+		$remote = apply_filters(
+			sprintf(
+				'inc2734_github_plugin_updater_remote_api_%1$s/%2$s',
+				$this->user_name,
+				$this->repository
+			),
+			$remote
+		);
 
 		$obj                = new stdClass();
 		$obj->slug          = $this->plugin_name;

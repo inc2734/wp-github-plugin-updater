@@ -147,3 +147,16 @@ add_filter(
   4
 );
 ```
+
+### inc2734_github_plugin_updater_remote_api_<$user_name>/<$repository>
+
+Customize fields contents_api.
+
+```
+add_filter(
+  'inc2734_github_plugin_updater_remote_api_inc2734/snow-monkey-blocks',
+  function( $remote ) {
+    return $remote;
+  }
+);
+```
