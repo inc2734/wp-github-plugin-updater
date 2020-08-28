@@ -71,7 +71,14 @@ class GitHubRepositoryContent {
 			}
 		}
 
-		return $headers;
+		return apply_filters(
+			sprintf(
+				'inc2734_github_plugin_updater_repository_content_headers_%1$s/%2$s',
+				$this->user_name,
+				$this->repository
+			),
+			$headers
+		);
 	}
 
 	protected function _retrieve( $response ) {
@@ -102,7 +109,7 @@ class GitHubRepositoryContent {
 
 		$url = apply_filters(
 			sprintf(
-				'inc2734_github_plugin_updater_contents_url_%1$s/%2$s',
+				'inc2734_github_plugin_updater_repository_content_url_%1$s/%2$s',
 				$this->user_name,
 				$this->repository
 			),

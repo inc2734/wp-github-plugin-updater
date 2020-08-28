@@ -131,15 +131,6 @@ class Bootstrap {
 
 		$remote = $this->github_repository_content->get_headers();
 
-		$remote = apply_filters(
-			sprintf(
-				'inc2734_github_plugin_updater_remote_api_%1$s/%2$s',
-				$this->user_name,
-				$this->repository
-			),
-			$remote
-		);
-
 		$update = (object) [
 			'id'           => $this->user_name . '/' . $this->repository . '/' . $this->plugin_name,
 			'slug'         => $this->slug,
@@ -206,15 +197,6 @@ class Bootstrap {
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
 		$remote = $this->github_repository_content->get_headers();
 
-		$remote = apply_filters(
-			sprintf(
-				'inc2734_github_plugin_updater_remote_api_%1$s/%2$s',
-				$this->user_name,
-				$this->repository
-			),
-			$remote
-		);
-
 		$obj                = new stdClass();
 		$obj->slug          = $this->plugin_name;
 		$obj->name          = esc_html( $current['Name'] );
@@ -234,9 +216,9 @@ class Bootstrap {
 			) :
 			null;
 		$obj->last_updated  = $response->published_at;
-		$obj->requires      = esc_html( $remote['RequiresWP'] );
-		$obj->requires_php  = esc_html( $remote['RequiresPHP'] );
-		$obj->tested        = esc_html( $remote['Tested up to'] );
+		$obj->requires      = isset( $remote['RequiresWP'] ) ? esc_html( $remote['RequiresWP'] ) : '';
+		$obj->requires_php  = isset( $remote['RequiresPHP'] ) ? esc_html( $remote['RequiresPHP'] ) : '';
+		$obj->tested        = isset( $remote['Tested up to'] ) ? esc_html( $remote['Tested up to'] ) : '';
 
 		if ( ! empty( $response->assets ) && is_array( $response->assets ) ) {
 			if ( ! empty( $response->assets[0] ) && is_object( $response->assets[0] ) ) {

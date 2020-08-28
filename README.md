@@ -133,13 +133,13 @@ add_filter(
 );
 ```
 
-### inc2734_github_plugin_updater_contents_url_<$user_name>/<$repository>
+### inc2734_github_plugin_updater_repository_content_url_<$user_name>/<$repository>
 
 Customize contents api url.
 
 ```
 add_filter(
-  'inc2734_github_plugin_updater_contents_url_inc2734/snow-monkey-blocks',
+  'inc2734_github_plugin_updater_repository_content_url_inc2734/snow-monkey-blocks',
   function( $url, $user_name, $repository, $plugin_name ) {
     return $url;
   },
@@ -148,15 +148,15 @@ add_filter(
 );
 ```
 
-### inc2734_github_plugin_updater_remote_api_<$user_name>/<$repository>
+### inc2734_github_plugin_updater_repository_content_headers_<$user_name>/<$repository>
 
 Customize fields contents_api.
 
 ```
 add_filter(
-  'inc2734_github_plugin_updater_remote_api_inc2734/snow-monkey-blocks',
-  function( $remote ) {
-    return $remote;
+  'inc2734_github_plugin_updater_repository_content_headers_inc2734/snow-monkey-blocks',
+  function( $headers ) {
+    return $headers;
   }
 );
 ```
