@@ -80,46 +80,6 @@ add_filter(
 );
 ```
 
-### inc2734_github_plugin_updater_zip_url
-
-**Obsolete from v2.0.0**
-
-Customize downloaded package url.
-
-```
-add_filter(
-  'inc2734_github_plugin_updater_zip_url',
-  function( $url, $user_name, $repository, $tag_name ) {
-    if ( 'inc2734' === $user_name && 'snow-monkey-blocks' === $repository ) {
-      return 'https://example.com/my-custom-updater-zip-url';
-    }
-    return $url;
-  },
-  10,
-  4
-);
-```
-
-### inc2734_github_plugin_updater_request_url
-
-**Obsolete from v2.0.0**
-
-Customize requested api url.
-
-```
-add_filter(
-  'inc2734_github_plugin_updater_request_url',
-  function( $url, $user_name, $repository ) {
-    if ( 'inc2734' === $user_name && 'snow-monkey-blocks' === $repository ) {
-      return 'https://example.com/my-custom-updater-request-url';
-    }
-    return $url;
-  },
-  10,
-  3
-);
-```
-
 ### inc2734_github_plugin_updater_plugins_api_<$user_name>/<$repository>
 
 Customize fields of `plugins_api`.
@@ -173,5 +133,45 @@ add_filter(
   },
   10,
   4
+);
+```
+
+### inc2734_github_plugin_updater_zip_url
+
+**Obsolete from v2.0.0**
+
+Customize downloaded package url.
+
+```
+add_filter(
+  'inc2734_github_plugin_updater_zip_url',
+  function( $url, $user_name, $repository, $tag_name ) {
+    if ( 'inc2734' === $user_name && 'snow-monkey-blocks' === $repository ) {
+      return 'https://example.com/my-custom-updater-zip-url';
+    }
+    return $url;
+  },
+  10,
+  4
+);
+```
+
+### inc2734_github_plugin_updater_request_url
+
+**Obsolete from v2.0.0**
+
+Customize requested api url.
+
+```
+add_filter(
+  'inc2734_github_plugin_updater_request_url',
+  function( $url, $user_name, $repository ) {
+    if ( 'inc2734' === $user_name && 'snow-monkey-blocks' === $repository ) {
+      return 'https://example.com/my-custom-updater-request-url';
+    }
+    return $url;
+  },
+  10,
+  3
 );
 ```
