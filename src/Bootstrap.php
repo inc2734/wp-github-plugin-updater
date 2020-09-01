@@ -216,9 +216,9 @@ class Bootstrap {
 			) :
 			null;
 		$obj->last_updated  = $response->published_at;
-		$obj->requires      = isset( $remote['RequiresWP'] ) ? esc_html( $remote['RequiresWP'] ) : '';
-		$obj->requires_php  = isset( $remote['RequiresPHP'] ) ? esc_html( $remote['RequiresPHP'] ) : '';
-		$obj->tested        = isset( $remote['Tested up to'] ) ? esc_html( $remote['Tested up to'] ) : '';
+		$obj->requires      = esc_html( $remote['RequiresWP'] );
+		$obj->requires_php  = esc_html( $remote['RequiresPHP'] );
+		$obj->tested        = esc_html( $remote['Tested up to'] );
 
 		if ( ! empty( $response->assets ) && is_array( $response->assets ) ) {
 			if ( ! empty( $response->assets[0] ) && is_object( $response->assets[0] ) ) {

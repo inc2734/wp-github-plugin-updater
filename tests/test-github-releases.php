@@ -26,11 +26,11 @@ class GitHub_Plugin_Updater_Release_Test extends WP_UnitTestCase {
 		add_filter(
 			'inc2734_github_plugin_updater_zip_url_inc2734/dummy-hello-dolly',
 			function( $url ) {
-				return 'https://snow-monkey.2inc.org/dummy-hello-dolly.zip';
+				return 'https://github.com/inc2734/dummy-hello-dolly/archive/1000000.zip?v=1';
 			}
 		);
 
 		$response = $github_releases->get();
-		$this->assertEquals( 'https://snow-monkey.2inc.org/dummy-hello-dolly.zip', $response->package );
+		$this->assertEquals( 'https://github.com/inc2734/dummy-hello-dolly/archive/1000000.zip?v=1', $response->package );
 	}
 }
