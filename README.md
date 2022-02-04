@@ -4,6 +4,8 @@
 [![Latest Stable Version](https://poser.pugx.org/inc2734/wp-github-plugin-updater/v/stable)](https://packagist.org/packages/inc2734/wp-github-plugin-updater)
 [![License](https://poser.pugx.org/inc2734/wp-github-plugin-updater/license)](https://packagist.org/packages/inc2734/wp-github-plugin-updater)
 
+Require WordPress 5.9 or later.
+
 ## Install
 ```
 $ composer require inc2734/wp-github-plugin-updater

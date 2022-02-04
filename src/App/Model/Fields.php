@@ -28,16 +28,16 @@ class Fields {
 
 	/**
 	 * Whether to return the plugin readme sections: description, installation,
-   * FAQ, screenshots, other notes, and changelog.
-   *
+	 * FAQ, screenshots, other notes, and changelog.
+	 *
 	 * @var array|boolean
-	 *   @var string description
-	 *   @var string installation
-	 *   @var string faq
-	 *   @var string screenshots
-	 *   @var string changelog
-	 *   @var string reviews
-	 *   @var string other_notes
+	 *  - string description Description.
+	 *  - string installation Installation.
+	 *  - string faq FAQ.
+	 *  - string screenshots Screenshots.
+	 *  - string changelog Changelog.
+	 *  - string reviews Reviews.
+	 *  - string other_notes Other notes.
 	 */
 	public $sections = false;
 
@@ -231,7 +231,9 @@ class Fields {
 	public $other_notes_url = '';
 
 	/**
-	 * @param array $fields
+	 * Constructor.
+	 *
+	 * @param array $fields Array of fields.
 	 */
 	public function __construct( array $fields ) {
 		foreach ( $fields as $field => $value ) {
@@ -242,9 +244,9 @@ class Fields {
 	}
 
 	/**
-	 * Return specific property
+	 * Return specific property.
 	 *
-	 * @param string $field
+	 * @param string $field Field.
 	 * @return mixed
 	 */
 	public function get( $field ) {

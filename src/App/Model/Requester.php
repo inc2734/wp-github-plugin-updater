@@ -9,6 +9,12 @@ namespace Inc2734\WP_GitHub_Plugin_Updater\App\Model;
 
 class Requester {
 
+	/**
+	 * Performs an HTTP request using the GET method and returns its response.
+	 *
+	 * @param string $url URL to retrieve.
+	 * @return array|WP_Error
+	 */
 	public static function request( $url ) {
 		global $wp_version;
 

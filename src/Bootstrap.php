@@ -18,35 +18,35 @@ use Inc2734\WP_GitHub_Plugin_Updater\App\Model\GitHubRepositoryContributors;
 class Bootstrap {
 
 	/**
-	 * The plugin name
+	 * The plugin name.
 	 *
 	 * @var string
 	 */
 	protected $plugin_name;
 
 	/**
-	 * The plugin slug
+	 * The plugin slug.
 	 *
 	 * @var string
 	 */
 	protected $slug;
 
 	/**
-	 * GitHub user name
+	 * GitHub user name.
 	 *
 	 * @var string
 	 */
 	protected $user_name;
 
 	/**
-	 * GitHub repository name
+	 * GitHub repository name.
 	 *
 	 * @var string
 	 */
 	protected $repository;
 
 	/**
-	 * Plugin data fields
+	 * Plugin data fields.
 	 *
 	 * @var Fields
 	 */
@@ -68,10 +68,12 @@ class Bootstrap {
 	protected $github_repository_contributors;
 
 	/**
-	 * @param string $plugin_name
-	 * @param string $user_name
-	 * @param string $repository
-	 * @param array $fields Plugin data fields
+	 * Constructor.
+	 *
+	 * @param string $plugin_name Plugin basename.
+	 * @param string $user_name GitHub user name.
+	 * @param string $repository GitHub repository name.
+	 * @param array  $fields Plugin data fields.
 	 */
 	public function __construct( $plugin_name, $user_name, $repository, array $fields = [] ) {
 		$this->plugin_name = $plugin_name;
@@ -82,32 +84,36 @@ class Bootstrap {
 
 		load_textdomain( 'inc2734-wp-github-plugin-updater', __DIR__ . '/languages/' . get_locale() . '.mo' );
 
-		$upgrader = new App\Model\Upgrader( $plugin_name );
-		$this->github_releases = new GitHubReleases( $plugin_name, $user_name, $repository );
-		$this->github_repository_content = new GitHubRepositoryContent( $plugin_name, $user_name, $repository );
+		$upgrader                             = new App\Model\Upgrader( $plugin_name );
+		$this->github_releases                = new GitHubReleases( $plugin_name, $user_name, $repository );
+		$this->github_repository_content      = new GitHubRepositoryContent( $plugin_name, $user_name, $repository );
 		$this->github_repository_contributors = new GitHubRepositoryContributors( $plugin_name, $user_name, $repository );
 
 		add_filter( 'extra_plugin_headers', [ $this, '_extra_plugin_headers' ] );
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, '_pre_set_site_transient_update_plugins' ] );
 		add_filter( 'upgrader_pre_install', [ $upgrader, 'pre_install' ], 10, 2 );
-		add_filter( 'upgrader_source_selection', [ $upgrader, 'source_selection' ], 10, 4 );
 		add_filter( 'plugins_api', [ $this, '_plugins_api' ], 10, 3 );
 		add_action( 'upgrader_process_complete', [ $this, '_upgrader_process_complete' ], 10, 2 );
 	}
 
+	/**
+	 * Filters extra file headers by plugin.
+	 *
+	 * @param array $headers Array of plugin headers.
+	 */
 	public function _extra_plugin_headers( $headers ) {
-		if ( ! in_array( 'Tested up to', $headers ) ) {
+		if ( ! in_array( 'Tested up to', $headers, true ) ) {
 			$headers[] = 'Tested up to';
 		}
 		return $headers;
 	}
 
 	/**
-	 * Overwrite site_transient_update_plugins
+	 * Overwrite site_transient_update_plugins.
 	 *
 	 * @see https://make.wordpress.org/core/2020/07/30/recommended-usage-of-the-updates-api-to-support-the-auto-updates-ui-for-plugins-and-themes-in-wordpress-5-5/
 	 *
-	 * @param false|array $transient
+	 * @param false|array $transient Transient of update_plugins.
 	 * @return false|array
 	 */
 	public function _pre_set_site_transient_update_plugins( $transient ) {
@@ -145,6 +151,7 @@ class Bootstrap {
 			'requires'     => $this->fields->get( 'requires' ) ? $this->fields->get( 'requires' ) : $remote['RequiresWP'],
 		];
 
+		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
 		$update = apply_filters(
 			sprintf(
 				'inc2734_github_plugin_updater_transient_response_%1$s/%2$s',
@@ -153,17 +160,18 @@ class Bootstrap {
 			),
 			$update
 		);
+		// phpcs:enable
 
-		$current  = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
 		if ( ! $this->_should_update( $current['Version'], $response->tag_name ) ) {
 			if ( false === $transient ) {
-				$transient = new stdClass();
+				$transient            = new stdClass();
 				$transient->no_update = [];
 			}
 			$transient->no_update[ $this->plugin_name ] = $update;
 		} else {
 			if ( false === $transient ) {
-				$transient = new stdClass();
+				$transient           = new stdClass();
 				$transient->response = [];
 			}
 			$transient->response[ $this->plugin_name ] = $update;
@@ -195,30 +203,30 @@ class Bootstrap {
 		}
 
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		$remote = $this->github_repository_content->get_headers();
+		$remote  = $this->github_repository_content->get_headers();
 
-		$obj                = new stdClass();
-		$obj->slug          = $this->plugin_name;
-		$obj->name          = esc_html( $current['Name'] );
-		$obj->plugin_name   = esc_html( $current['Name'] );
-		$obj->author        = ! empty( $response->author ) ?
+		$obj               = new stdClass();
+		$obj->slug         = $this->plugin_name;
+		$obj->name         = esc_html( $current['Name'] );
+		$obj->plugin_name  = esc_html( $current['Name'] );
+		$obj->author       = ! empty( $response->author ) ?
 			sprintf(
 				'<a href="%1$s" target="_blank">%2$s</a>',
 				esc_url( $response->author->html_url ),
 				esc_html( $response->author->login )
 			) :
 			null;
-		$obj->version       = ! empty( $response->html_url ) && ! empty( $response->tag_name ) ?
+		$obj->version      = ! empty( $response->html_url ) && ! empty( $response->tag_name ) ?
 			sprintf(
 				'<a href="%1$s" target="_blank">%2$s</a>',
 				esc_url( $response->html_url ),
 				esc_html( $response->tag_name )
 			) :
 			null;
-		$obj->last_updated  = $response->published_at;
-		$obj->requires      = esc_html( $remote['RequiresWP'] );
-		$obj->requires_php  = esc_html( $remote['RequiresPHP'] );
-		$obj->tested        = esc_html( $remote['Tested up to'] );
+		$obj->last_updated = $response->published_at;
+		$obj->requires     = esc_html( $remote['RequiresWP'] );
+		$obj->requires_php = esc_html( $remote['RequiresPHP'] );
+		$obj->tested       = esc_html( $remote['Tested up to'] );
 
 		if ( ! empty( $response->assets ) && is_array( $response->assets ) ) {
 			if ( ! empty( $response->assets[0] ) && is_object( $response->assets[0] ) ) {
@@ -228,7 +236,7 @@ class Bootstrap {
 			}
 		}
 
-		$contributors = $this->github_repository_contributors->get();
+		$contributors      = $this->github_repository_contributors->get();
 		$obj->contributors = $contributors;
 
 		$fields = array_keys( get_object_vars( $this->fields ) );
@@ -255,6 +263,7 @@ class Bootstrap {
 			];
 		}
 
+		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
 		$obj = apply_filters(
 			sprintf(
 				'inc2734_github_plugin_updater_plugins_api_%1$s/%2$s',
@@ -264,6 +273,7 @@ class Bootstrap {
 			$obj,
 			$response
 		);
+		// phpcs:enable
 
 		$obj->external      = true;
 		$obj->download_link = false;
@@ -274,8 +284,8 @@ class Bootstrap {
 	/**
 	 * Fires when the upgrader process is complete.
 	 *
-	 * @param WP_Upgrader $upgrader_object
-	 * @param array $hook_extra
+	 * @param WP_Upgrader $upgrader_object WP_Upgrader instance. In other contexts this might be a Theme_Upgrader, Plugin_Upgrader, Core_Upgrade, or Language_Pack_Upgrader instance.
+	 * @param array       $hook_extra Array of bulk item update data.
 	 */
 	public function _upgrader_process_complete( $upgrader_object, $hook_extra ) {
 		if ( 'update' === $hook_extra['action'] && 'plugin' === $hook_extra['type'] ) {
@@ -289,9 +299,9 @@ class Bootstrap {
 	}
 
 	/**
-	 * Sanitize version
+	 * Sanitize version.
 	 *
-	 * @param string $version
+	 * @param string $version Version to check.
 	 * @return string
 	 */
 	protected function _sanitize_version( $version ) {
@@ -300,10 +310,10 @@ class Bootstrap {
 	}
 
 	/**
-	 * If remote version is newer, return true
+	 * If remote version is newer, return true.
 	 *
-	 * @param string $current_version
-	 * @param string $remote_version
+	 * @param string $current_version Current version.
+	 * @param string $remote_version Remove version.
 	 * @return bool
 	 */
 	protected function _should_update( $current_version, $remote_version ) {
@@ -315,9 +325,9 @@ class Bootstrap {
 	}
 
 	/**
-	 * Return content text
+	 * Return content text.
 	 *
-	 * @param string $url
+	 * @param string $url Name of the file to read.
 	 * @return string
 	 */
 	protected function _get_content_text( $url ) {
@@ -330,7 +340,7 @@ class Bootstrap {
 		}
 		if ( 'md' === substr( $url, strrpos( $url, '.' ) + 1 ) ) {
 			$parsedown = new Parsedown();
-			$text = $parsedown->text( $text );
+			$text      = $parsedown->text( $text );
 		}
 		return $text;
 	}

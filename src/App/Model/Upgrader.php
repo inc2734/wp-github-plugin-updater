@@ -12,56 +12,26 @@ use WP_Error;
 class Upgrader {
 
 	/**
-	 * The plugin name
+	 * The plugin name.
 	 *
 	 * @var string
 	 */
 	protected $plugin_name;
 
 	/**
-	 * @param string $plugin_name
+	 * Constructor.
+	 *
+	 * @param string $plugin_name Plugin basename.
 	 */
 	public function __construct( $plugin_name ) {
 		$this->plugin_name = $plugin_name;
 	}
 
 	/**
-	 * Expand the plugin
+	 * Filters the install response before the installation has started.
 	 *
-	 * @param string $source
-	 * @param string $remote_source
-	 * @param WP_Upgrader $install
-	 * @param array $args['hook_extra']
-	 * @return $source|WP_Error.
-	 */
-	public function source_selection( $source, $remote_source, $install, $hook_extra ) {
-		if ( ! isset( $hook_extra['plugin'] ) || $this->plugin_name !== $hook_extra['plugin'] ) {
-			return $source;
-		}
-
-		global $wp_filesystem;
-
-		$source_plugin_dir = untrailingslashit( WP_CONTENT_DIR ) . '/upgrade';
-		if ( $wp_filesystem->is_writable( $source_plugin_dir ) && $wp_filesystem->is_writable( $source ) ) {
-			if ( 0 < strpos( $this->plugin_name, '/' ) ) {
-				$slug = trailingslashit( dirname( $this->plugin_name ) );
-			} else {
-				$slug = $this->plugin_name;
-			}
-			$newsource = trailingslashit( $source_plugin_dir ) . $slug;
-			if ( $wp_filesystem->move( $source, $newsource, true ) ) {
-				return $newsource;
-			}
-		}
-
-		return new WP_Error();
-	}
-
-	/**
-	 * Correspondence when the plugin can not be updated
-	 *
-	 * @param bool $bool
-	 * @param array $hook_extra
+	 * @param bool|WP_Error $bool Response.
+	 * @param array         $hook_extra Extra arguments passed to hooked filters.
 	 * @return bool|WP_Error.
 	 */
 	public function pre_install( $bool, $hook_extra ) {

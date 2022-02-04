@@ -11,21 +11,53 @@ use Inc2734\WP_GitHub_Plugin_Updater\App\Model\Requester;
 
 class GitHubRepositoryContent {
 
+	/**
+	 * Plugin basename.
+	 *
+	 * @var string
+	 */
 	protected $plugin_name;
 
+	/**
+	 * GitHub user name.
+	 *
+	 * @var string
+	 */
 	protected $user_name;
 
+	/**
+	 * GitHub repository name.
+	 *
+	 * @var string
+	 */
 	protected $repository;
 
+	/**
+	 * Transient name.
+	 *
+	 * @var string
+	 */
 	protected $transient_name;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param string $plugin_name Plugin basename.
+	 * @param string $user_name GitHub user name.
+	 * @param string $repository GitHub repository name.
+	 */
 	public function __construct( $plugin_name, $user_name, $repository ) {
-		$this->plugin_name = $plugin_name;
-		$this->user_name   = $user_name;
-		$this->repository  = $repository;
+		$this->plugin_name    = $plugin_name;
+		$this->user_name      = $user_name;
+		$this->repository     = $repository;
 		$this->transient_name = sprintf( 'wp_github_plugin_updater_repository_data_%1$s', $this->plugin_name );
 	}
 
+	/**
+	 * Get repository content.
+	 *
+	 * @return string
+	 */
 	public function get() {
 		$transient = get_transient( $this->transient_name );
 		if ( false !== $transient ) {
@@ -39,13 +71,20 @@ class GitHubRepositoryContent {
 		return $response;
 	}
 
+	/**
+	 * Delete transient.
+	 */
 	public function delete_transient() {
 		delete_transient( $this->transient_name );
 	}
 
 	/**
+	 * Return plugin headers.
+	 *
 	 * @see https://developer.wordpress.org/reference/functions/get_file_data/
 	 * @see https://developer.wordpress.org/reference/functions/get_plugin_data/
+	 *
+	 * @return array
 	 */
 	public function get_headers() {
 		$headers = [];
@@ -71,6 +110,7 @@ class GitHubRepositoryContent {
 			}
 		}
 
+		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
 		return apply_filters(
 			sprintf(
 				'inc2734_github_plugin_updater_repository_content_headers_%1$s/%2$s',
@@ -79,8 +119,15 @@ class GitHubRepositoryContent {
 			),
 			$headers
 		);
+		// phpcs:enable
 	}
 
+	/**
+	 * Retrieve only the body from the raw response.
+	 *
+	 * @param array|WP_Error $response HTTP response.
+	 * @return string|null|WP_Error
+	 */
 	protected function _retrieve( $response ) {
 		if ( is_wp_error( $response ) ) {
 			return null;
@@ -99,6 +146,11 @@ class GitHubRepositoryContent {
 		return base64_decode( $body->content );
 	}
 
+	/**
+	 * Request to GitHub contributors API.
+	 *
+	 * @return array|WP_Error
+	 */
 	protected function _request() {
 		$url = sprintf(
 			'https://api.github.com/repos/%1$s/%2$s/contents/%3$s',
@@ -107,6 +159,7 @@ class GitHubRepositoryContent {
 			basename( $this->plugin_name )
 		);
 
+		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
 		$url = apply_filters(
 			sprintf(
 				'inc2734_github_plugin_updater_repository_content_url_%1$s/%2$s',
@@ -118,6 +171,7 @@ class GitHubRepositoryContent {
 			$this->repository,
 			basename( $this->plugin_name )
 		);
+		// phpcs:enable
 
 		return Requester::request( $url );
 	}
