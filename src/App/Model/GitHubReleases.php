@@ -103,7 +103,7 @@ class GitHubReleases {
 			return $body;
 		}
 
-		$message = null !== $body && property_exists( $body, 'message' )
+		$message = $body && property_exists( $body, 'message' )
 			? $body->message
 			: __( 'Failed to get update response.', 'inc2734-wp-github-plugin-updater' );
 
