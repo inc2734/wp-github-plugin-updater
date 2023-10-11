@@ -98,7 +98,7 @@ class GitHubReleases {
 		}
 
 		$body = json_decode( wp_remote_retrieve_body( $response ) );
-		if ( 200 === (int) $response_code ) {
+		if ( 200 === (int) $response_code && $body ) {
 			$body->package = $body->tag_name ? $this->_get_zip_url( $body ) : false;
 			return $body;
 		}
