@@ -55,20 +55,35 @@ class GitHubReleases {
 	}
 
 	/**
-	 * Get release data.
+	 * Get response of GitHub API.
 	 *
+	 * @param string|null $version Version.
 	 * @return array
 	 */
-	public function get() {
+	public function get( $version = null ) {
 		$transient = get_transient( $this->transient_name );
-		if ( false !== $transient ) {
-			return $transient;
+		if ( ! is_array( $transient ) ) {
+			$transient = array();
 		}
 
-		$response = $this->_request();
+		if ( false !== $transient ) {
+			if ( ! $version && ! empty( $transient['latest'] ) ) {
+				return $transient['latest'];
+			} elseif ( ! empty( $transient[ $version ] ) ) {
+				return $transient[ $version ];
+			}
+		}
+
+		$response = $this->_request( $version );
 		$response = $this->_retrieve( $response );
 
-		set_transient( $this->transient_name, $response, 60 * 5 );
+		if ( ! $version ) {
+			$transient['latest'] = $response;
+		} else {
+			$transient[ $version ] = $response;
+		}
+		set_transient( $this->transient_name, $transient, 60 * 5 );
+
 		return $response;
 	}
 
@@ -115,10 +130,10 @@ class GitHubReleases {
 		);
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message );
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 
-		if ( ! in_array( $pagenow, [ 'update-core.php', 'plugins.php' ], true ) ) {
+		if ( ! in_array( $pagenow, array( 'update-core.php', 'plugins.php' ), true ) ) {
 			return null;
 		}
 
@@ -131,14 +146,22 @@ class GitHubReleases {
 	/**
 	 * Request to GitHub contributors API.
 	 *
+	 * @param string|null $version Version.
 	 * @return array|WP_Error
 	 */
-	protected function _request() {
-		$url = sprintf(
-			'https://api.github.com/repos/%1$s/%2$s/releases/latest',
-			$this->user_name,
-			$this->repository
-		);
+	protected function _request( $version = null ) {
+		$url = ! $version
+			? sprintf(
+				'https://api.github.com/repos/%1$s/%2$s/releases/latest',
+				$this->user_name,
+				$this->repository
+			)
+			: sprintf(
+				'https://api.github.com/repos/%1$s/%2$s/releases/tags/%3$s',
+				$this->user_name,
+				$this->repository,
+				$version
+			);
 
 		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
 		$url = apply_filters(
@@ -149,7 +172,8 @@ class GitHubReleases {
 			),
 			$url,
 			$this->user_name,
-			$this->repository
+			$this->repository,
+			$version
 		);
 		// phpcs:enable
 
@@ -184,7 +208,7 @@ class GitHubReleases {
 			);
 
 			$http_status_code = $this->_get_http_status_code( $url );
-			if ( ! in_array( $http_status_code, [ 200, 302 ], true ) ) {
+			if ( ! in_array( $http_status_code, array( 200, 302 ), true ) ) {
 				$url = sprintf(
 					'https://github.com/%1$s/%2$s/archive/%3$s.zip',
 					$this->user_name,
@@ -209,13 +233,13 @@ class GitHubReleases {
 		// phpcs:enable
 
 		if ( ! $url ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found.' );
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return false;
 		}
 
 		$http_status_code = $this->_get_http_status_code( $url );
-		if ( ! in_array( $http_status_code, [ 200, 302 ], true ) ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $url );
+		if ( ! in_array( $http_status_code, array( 200, 302 ), true ) ) {
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $url ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return false;
 		}
 

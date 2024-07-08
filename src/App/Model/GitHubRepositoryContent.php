@@ -56,18 +56,33 @@ class GitHubRepositoryContent {
 	/**
 	 * Get repository content.
 	 *
+	 * @param string|null $version Version.
 	 * @return string
 	 */
-	public function get() {
+	public function get( $version = null ) {
 		$transient = get_transient( $this->transient_name );
-		if ( false !== $transient ) {
-			return $transient;
+		if ( ! is_array( $transient ) ) {
+			$transient = array();
 		}
 
-		$response = $this->_request();
+		if ( false !== $transient ) {
+			if ( ! $version && ! empty( $transient['latest'] ) ) {
+				return $transient['latest'];
+			} elseif ( ! empty( $transient[ $version ] ) ) {
+				return $transient[ $version ];
+			}
+		}
+
+		$response = $this->_request( $version );
 		$response = $this->_retrieve( $response );
 
-		set_transient( $this->transient_name, $response, 0 );
+		if ( ! $version ) {
+			$transient['latest'] = $response;
+		} else {
+			$transient[ $version ] = $response;
+		}
+		set_transient( $this->transient_name, $transient, 60 * 5 );
+
 		return $response;
 	}
 
@@ -84,18 +99,19 @@ class GitHubRepositoryContent {
 	 * @see https://developer.wordpress.org/reference/functions/get_file_data/
 	 * @see https://developer.wordpress.org/reference/functions/get_plugin_data/
 	 *
+	 * @param string|null $version Version.
 	 * @return array
 	 */
-	public function get_headers() {
-		$headers = [];
+	public function get_headers( $version = null ) {
+		$headers = array();
 
-		$content = $this->get();
+		$content = $this->get( $version );
 
-		$target_headers = [
+		$target_headers = array(
 			'RequiresWP'   => 'Requires at least',
 			'RequiresPHP'  => 'Requires PHP',
 			'Tested up to' => 'Tested up to',
-		];
+		);
 
 		if ( null !== $content ) {
 			$content = substr( $content, 0, 8 * KB_IN_BYTES );
@@ -117,7 +133,10 @@ class GitHubRepositoryContent {
 				$this->user_name,
 				$this->repository
 			),
-			$headers
+			$headers,
+			$this->user_name,
+			$this->repository,
+			$version
 		);
 		// phpcs:enable
 	}
@@ -143,21 +162,30 @@ class GitHubRepositoryContent {
 			return null;
 		}
 
-		return base64_decode( $body->content );
+		return base64_decode( $body->content ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 	}
 
 	/**
 	 * Request to GitHub contributors API.
 	 *
+	 * @param string|null $version Version.
 	 * @return array|WP_Error
 	 */
-	protected function _request() {
-		$url = sprintf(
-			'https://api.github.com/repos/%1$s/%2$s/contents/%3$s',
-			$this->user_name,
-			$this->repository,
-			basename( $this->plugin_name )
-		);
+	protected function _request( $version = null ) {
+		$url = ! $version
+			? sprintf(
+				'https://api.github.com/repos/%1$s/%2$s/contents/%3$s',
+				$this->user_name,
+				$this->repository,
+				basename( $this->plugin_name )
+			)
+			: sprintf(
+				'https://api.github.com/repos/%1$s/%2$s/contents/%3$s?ref=%4$s',
+				$this->user_name,
+				$this->repository,
+				basename( $this->plugin_name ),
+				$version
+			);
 
 		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
 		$url = apply_filters(
@@ -169,7 +197,8 @@ class GitHubRepositoryContent {
 			$url,
 			$this->user_name,
 			$this->repository,
-			basename( $this->plugin_name )
+			basename( $this->plugin_name ),
+			$version
 		);
 		// phpcs:enable
 

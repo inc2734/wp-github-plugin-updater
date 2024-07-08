@@ -1,12 +1,14 @@
-.github export-ignore
-bin export-ignore
 .browserslistrc export-ignore
 .editorconfig export-ignore
 .gitattributes export-ignore
+.github export-ignore
 .gitignore export-ignore
 .phpcs.xml.dist export-ignore
 .phpunit.xml.dist export-ignore
 .wp-env.json export-ignore
+bin export-ignore
+composer.lock export-ignore
+package-lock.json export-ignore
+postcss.config.js export-ignore
 tests export-ignore
 webpack.config.js export-ignore
-postcss.config.js export-ignore

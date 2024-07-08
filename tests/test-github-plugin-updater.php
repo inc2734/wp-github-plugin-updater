@@ -5,15 +5,15 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 		parent::__construct();
 	}
 
-	public function setup() {
-		parent::setup();
+	public function set_up() {
+		parent::set_up();
 
 		include_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
 		include_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
 	}
 
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 	}
 
 	/**
@@ -29,7 +29,7 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 				'plugin'       => 'hello.php',
 				'new_version'  => '1000000',
 				'url'          => false,
-				'package'      => 'https://github.com/inc2734/dummy-hello-dolly/archive/1000000.zip',
+				'package'      => 'https://github.com/inc2734/dummy-hello-dolly/releases/download/1000000/dummy-hello-dolly-1000000.zip',
 				'slug'         => 'hello.php',
 				'tested'       => '5.5',
 				'icons'        => false,
@@ -66,10 +66,10 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 		if ( WP_Filesystem() ) {
 			global $wp_filesystem;
 
-			$wp_filesystem->rename( WP_CONTENT_DIR . '/plugins/hello.php', WP_CONTENT_DIR . '/plugins/hello-dolly-org.php' );
+			$wp_filesystem->move( WP_CONTENT_DIR . '/plugins/hello.php', WP_CONTENT_DIR . '/plugins/hello-dolly-org.php' );
 			$result = $upgrader->pre_install( true, [ 'plugin' => 'hello.php' ] );
 			$this->assertTrue( is_wp_error( $result ) );
-			$wp_filesystem->rename( WP_CONTENT_DIR . '/plugins/hello-dolly-org.php', WP_CONTENT_DIR . '/plugins/hello.php' );
+			$wp_filesystem->move( WP_CONTENT_DIR . '/plugins/hello-dolly-org.php', WP_CONTENT_DIR . '/plugins/hello.php' );
 		}
 	}
 }

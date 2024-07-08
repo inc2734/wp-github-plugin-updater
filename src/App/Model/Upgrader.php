@@ -34,7 +34,7 @@ class Upgrader {
 	 * @param array         $hook_extra Extra arguments passed to hooked filters.
 	 * @return bool|WP_Error.
 	 */
-	public function pre_install( $bool, $hook_extra ) {
+	public function pre_install( $bool, $hook_extra ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.boolFound
 		if ( ! isset( $hook_extra['plugin'] ) || $this->plugin_name !== $hook_extra['plugin'] ) {
 			return $bool;
 		}

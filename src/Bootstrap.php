@@ -75,7 +75,7 @@ class Bootstrap {
 	 * @param string $repository GitHub repository name.
 	 * @param array  $fields Plugin data fields.
 	 */
-	public function __construct( $plugin_name, $user_name, $repository, array $fields = [] ) {
+	public function __construct( $plugin_name, $user_name, $repository, array $fields = array() ) {
 		$this->plugin_name = $plugin_name;
 		$this->slug        = preg_replace( '|^([^/]+)?/.+$|', '$1', $plugin_name );
 		$this->user_name   = $user_name;
@@ -89,11 +89,11 @@ class Bootstrap {
 		$this->github_repository_content      = new GitHubRepositoryContent( $plugin_name, $user_name, $repository );
 		$this->github_repository_contributors = new GitHubRepositoryContributors( $plugin_name, $user_name, $repository );
 
-		add_filter( 'extra_plugin_headers', [ $this, '_extra_plugin_headers' ] );
-		add_filter( 'pre_set_site_transient_update_plugins', [ $this, '_pre_set_site_transient_update_plugins' ] );
-		add_filter( 'upgrader_pre_install', [ $upgrader, 'pre_install' ], 10, 2 );
-		add_filter( 'plugins_api', [ $this, '_plugins_api' ], 10, 3 );
-		add_action( 'upgrader_process_complete', [ $this, '_upgrader_process_complete' ], 10, 2 );
+		add_filter( 'extra_plugin_headers', array( $this, '_extra_plugin_headers' ) );
+		add_filter( 'pre_set_site_transient_update_plugins', array( $this, '_pre_set_site_transient_update_plugins' ) );
+		add_filter( 'upgrader_pre_install', array( $upgrader, 'pre_install' ), 10, 2 );
+		add_filter( 'plugins_api', array( $this, '_plugins_api' ), 10, 3 );
+		add_action( 'upgrader_process_complete', array( $this, '_upgrader_process_complete' ), 10, 2 );
 	}
 
 	/**
@@ -123,7 +123,7 @@ class Bootstrap {
 
 		$response = $this->github_releases->get();
 		if ( is_wp_error( $response ) ) {
-			error_log( $response->get_error_message() );
+			error_log( $response->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return $transient;
 		}
 
@@ -135,9 +135,9 @@ class Bootstrap {
 			return $transient;
 		}
 
-		$remote = $this->github_repository_content->get_headers();
+		$remote = $this->github_repository_content->get_headers( $response->tag_name );
 
-		$update = (object) [
+		$update = (object) array(
 			'id'           => $this->user_name . '/' . $this->repository . '/' . $this->plugin_name,
 			'slug'         => $this->slug,
 			'plugin'       => $this->plugin_name,
@@ -149,7 +149,7 @@ class Bootstrap {
 			'tested'       => $this->fields->get( 'tested' ) ? $this->fields->get( 'tested' ) : $remote['Tested up to'],
 			'requires_php' => $this->fields->get( 'requires_php' ) ? $this->fields->get( 'requires_php' ) : $remote['RequiresPHP'],
 			'requires'     => $this->fields->get( 'requires' ) ? $this->fields->get( 'requires' ) : $remote['RequiresWP'],
-		];
+		);
 
 		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
 		$update = apply_filters(
@@ -166,13 +166,13 @@ class Bootstrap {
 		if ( ! $this->_should_update( $current['Version'], $response->tag_name ) ) {
 			if ( false === $transient ) {
 				$transient            = new stdClass();
-				$transient->no_update = [];
+				$transient->no_update = array();
 			}
 			$transient->no_update[ $this->plugin_name ] = $update;
 		} else {
 			if ( false === $transient ) {
 				$transient           = new stdClass();
-				$transient->response = [];
+				$transient->response = array();
 			}
 			$transient->response[ $this->plugin_name ] = $update;
 		}
@@ -202,8 +202,10 @@ class Bootstrap {
 			return $obj;
 		}
 
+		$version = ! empty( $response->tag_name ) ? $response->tag_name : null;
+
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		$remote  = $this->github_repository_content->get_headers();
+		$remote  = $this->github_repository_content->get_headers( $version );
 
 		$obj               = new stdClass();
 		$obj->slug         = $this->plugin_name;
@@ -216,11 +218,11 @@ class Bootstrap {
 				esc_html( $response->author->login )
 			) :
 			null;
-		$obj->version      = ! empty( $response->html_url ) && ! empty( $response->tag_name ) ?
+		$obj->version      = ! empty( $response->html_url ) && $version ?
 			sprintf(
 				'<a href="%1$s" target="_blank">%2$s</a>',
 				esc_url( $response->html_url ),
-				esc_html( $response->tag_name )
+				esc_html( $version )
 			) :
 			null;
 		$obj->last_updated = $response->published_at;
@@ -252,7 +254,7 @@ class Bootstrap {
 				? $this->fields->get( 'description_url' )
 				: WP_PLUGIN_DIR . '/' . dirname( $this->plugin_name ) . '/README.md';
 
-			$obj->sections = [
+			$obj->sections = array(
 				'description'  => $this->_get_content_text( $description_url ),
 				'installation' => $this->_get_content_text( $this->fields->get( 'installation_url' ) ),
 				'faq'          => $this->_get_content_text( $this->fields->get( 'faq_url' ) ),
@@ -260,7 +262,7 @@ class Bootstrap {
 				'changelog'    => $this->_get_content_text( $this->fields->get( 'changelog_url' ) ),
 				'reviews'      => $this->_get_content_text( $this->fields->get( 'reviews_url' ) ),
 				'other_notes'  => $this->_get_content_text( $this->fields->get( 'other_notes_url' ) ),
-			];
+			);
 		}
 
 		// phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores

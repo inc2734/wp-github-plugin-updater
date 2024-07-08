@@ -67,15 +67,15 @@ class GitHubRepositoryContributors {
 		$response = $this->_request();
 		$response = $this->_retrieve( $response );
 
-		$contributors = [];
+		$contributors = array();
 
 		if ( null !== $response ) {
 			foreach ( $response as $contributor ) {
-				$contributors[] = [
+				$contributors[] = array(
 					'display_name' => $contributor->login,
 					'avatar'       => $contributor->avatar_url,
 					'profile'      => $contributor->html_url,
-				];
+				);
 			}
 		}
 
@@ -126,10 +126,10 @@ class GitHubRepositoryContributors {
 		);
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message );
+			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 
-		if ( ! in_array( $pagenow, [ 'update-core.php', 'plugins.php' ], true ) ) {
+		if ( ! in_array( $pagenow, array( 'update-core.php', 'plugins.php' ), true ) ) {
 			return null;
 		}
 
