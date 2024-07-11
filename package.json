@@ -25,7 +25,6 @@
 		"test:unit:php": "wp-env start && wp-env run --env-cwd=\"wp-content/plugins/wp-github-plugin-updater\" tests-wordpress vendor/bin/phpunit -c .phpunit.xml.dist --verbose",
 		"test:unit": "run-s test:unit:*",
 		"test": "run-s test:*",
-		"makepot": "npm run wp i18n -- make-pot ./src ./src/languages/generic.pot --exclude=./src/assets --domain=inc2734-wp-github-plugin-updater'",
-		"build": "run-p makepot"
+		"make-pot": "npm run wp i18n -- make-pot ./src ./src/languages/generic.pot --exclude=./src/assets --domain=inc2734-wp-github-plugin-updater"
 	}
 }
