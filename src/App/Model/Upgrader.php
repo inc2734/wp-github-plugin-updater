@@ -59,7 +59,7 @@ class Upgrader {
 	 * @return bool
 	 */
 	public function upgrader_pre_download( $reply, $package, $upgrader, $hook_extra ) {
-		if ( $this->plugin_name === $hook_extra['plugin'] ) {
+		if ( ! empty( $hook_extra['plugin'] ) && $this->plugin_name === $hook_extra['plugin'] ) {
 			$upgrader->strings['downloading_package'] = __( 'Downloading update&#8230;', 'inc2734-wp-github-plugin-updater' );
 		}
 		return $reply;
