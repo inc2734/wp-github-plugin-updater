@@ -69,7 +69,7 @@ class GitHubRepositoryContributors {
 
 		$contributors = array();
 
-		if ( null !== $response ) {
+		if ( ! is_wp_error( $response ) && null !== $response ) {
 			foreach ( $response as $contributor ) {
 				$contributors[] = array(
 					'display_name' => $contributor->login,
@@ -77,9 +77,11 @@ class GitHubRepositoryContributors {
 					'profile'      => $contributor->html_url,
 				);
 			}
-		}
 
-		set_transient( $this->transient_name, $contributors, 0 );
+			set_transient( $this->transient_name, $contributors, 0 );
+		} else {
+			$this->delete_transient();
+		}
 
 		return $contributors;
 	}
