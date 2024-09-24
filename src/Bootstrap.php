@@ -165,13 +165,13 @@ class Bootstrap {
 
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
 		if ( ! $this->_should_update( $current['Version'], $response->tag_name ) ) {
-			if ( false === $transient ) {
+			if ( false === $transient || null === $transient ) {
 				$transient            = new stdClass();
 				$transient->no_update = array();
 			}
 			$transient->no_update[ $this->plugin_name ] = $update;
 		} else {
-			if ( false === $transient ) {
+			if ( false === $transient || null === $transient ) {
 				$transient           = new stdClass();
 				$transient->response = array();
 			}
