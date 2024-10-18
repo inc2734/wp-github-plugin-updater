@@ -110,39 +110,32 @@ class GitHubReleases {
 		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
-		if ( '' === $response_code ) {
-			return null;
+		$response_code = $response_code ? $response_code : 503;
+		if ( 200 !== (int) $response_code ) {
+			return new WP_Error(
+				$response_code,
+				sprintf(
+					'[%1$s] Failed to get update response. HTTP status is "%2$s"',
+					$this->plugin_name,
+					$response_code
+				)
+			);
 		}
 
 		$body = json_decode( wp_remote_retrieve_body( $response ) );
-		if ( 200 === (int) $response_code && $body ) {
-			$body->package = $body->tag_name ? $this->_get_zip_url( $body ) : false;
-			return $body;
+		if ( ! is_object( $body ) ) {
+			return new WP_Error(
+				$response_code,
+				sprintf(
+					'[%1$s] Failed to get update response.',
+					$this->plugin_name
+				)
+			);
 		}
 
-		$message = $body && property_exists( $body, 'message' )
-			? $body->message
-			: __( 'Failed to get update response.', 'inc2734-wp-github-plugin-updater' );
-
-		$error_message = sprintf(
-			/* Translators: 1: Plugin name, 2: Error message  */
-			__( '[%1$s] %2$s', 'inc2734-wp-github-plugin-updater' ),
-			$this->plugin_name,
-			$message
-		);
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. [' . $response_code . '] ' . $error_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		}
-
-		if ( ! in_array( $pagenow, array( 'update-core.php', 'plugins.php' ), true ) ) {
-			return null;
-		}
-
-		return new WP_Error(
-			$response_code,
-			$error_message
-		);
+		$body->package = ! empty( $body->tag_name )
+			? $this->_get_zip_url( $body )
+			: false;
 	}
 
 	/**
@@ -183,10 +176,12 @@ class GitHubReleases {
 	}
 
 	/**
-	 * Return zip url.
+	 * Get remote zip URL.
 	 *
-	 * @param object $response Response.
-	 * @return string
+	 * @throws \RuntimeException Invalid zip URL.
+	 *
+	 * @param stdClass $response Responser of GitHub API.
+	 * @return string|false
 	 */
 	protected function _get_zip_url( $response ) {
 		$url = false;
@@ -234,14 +229,28 @@ class GitHubReleases {
 		);
 		// phpcs:enable
 
-		if ( ! $url ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			return false;
-		}
+		try {
+			if ( ! $url ) {
+				throw new \RuntimeException(
+					sprintf(
+						'[%1$s] Can\'t find zip URL for update.',
+						$this->plugin_name
+					)
+				);
+			}
 
-		$http_status_code = $this->_get_http_status_code( $url );
-		if ( ! in_array( $http_status_code, array( 200, 302 ), true ) ) {
-			error_log( 'Inc2734_WP_GitHub_Plugin_Updater error. zip url not found. ' . $http_status_code . ' ' . $url ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			$http_status_code = $this->_get_http_status_code( $url );
+			if ( ! in_array( (int) $http_status_code, array( 200, 302 ), true ) ) {
+				throw new \RuntimeException(
+					sprintf(
+						'[%1$s] Can\'t find zip URL for update. HTTP status code is "%2$s"',
+						$this->plugin_name,
+						$http_status_code
+					)
+				);
+			}
+		} catch ( \Exception $e ) {
+			error_log( $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return false;
 		}
 
