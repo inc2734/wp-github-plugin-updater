@@ -58,11 +58,11 @@ class GitHubReleases {
 	 * Get response of GitHub API.
 	 *
 	 * @param string|null $version Version.
-	 * @return array
+	 * @return stdClass
 	 */
 	public function get( $version = null ) {
 		$transient = get_transient( $this->transient_name );
-		if ( ! is_array( $transient ) ) {
+		if ( ! is_object( $transient ) ) {
 			$transient = array();
 		}
 
@@ -100,7 +100,7 @@ class GitHubReleases {
 	 * Retrieve only the body from the raw response.
 	 *
 	 * @param array|WP_Error $response HTTP response.
-	 * @return array|null|WP_Error
+	 * @return stdClass|null|WP_Error
 	 */
 	protected function _retrieve( $response ) {
 		global $pagenow;
@@ -136,6 +136,8 @@ class GitHubReleases {
 		$body->package = ! empty( $body->tag_name )
 			? $this->_get_zip_url( $body )
 			: false;
+
+		return $body;
 	}
 
 	/**
