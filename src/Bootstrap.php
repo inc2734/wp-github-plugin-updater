@@ -114,6 +114,8 @@ class Bootstrap {
 	 *
 	 * @see https://make.wordpress.org/core/2020/07/30/recommended-usage-of-the-updates-api-to-support-the-auto-updates-ui-for-plugins-and-themes-in-wordpress-5-5/
 	 *
+	 * @throws \RuntimeException Invalid response.
+	 *
 	 * @param false|array $transient Transient of update_plugins.
 	 * @return false|array
 	 */
