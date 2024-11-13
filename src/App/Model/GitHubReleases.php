@@ -58,7 +58,7 @@ class GitHubReleases {
 	 * Get response of GitHub API.
 	 *
 	 * @param string|null $version Version.
-	 * @return stdClass
+	 * @return stdClass|WP_Error
 	 */
 	public function get( $version = null ) {
 		$transient = get_transient( $this->transient_name );

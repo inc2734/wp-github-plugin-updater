@@ -245,8 +245,12 @@ class Bootstrap {
 			}
 		}
 
-		$contributors      = $this->github_repository_contributors->get();
-		$obj->contributors = $contributors;
+		$contributors = $this->github_repository_contributors->get();
+		if ( ! is_wp_error( $contributors ) ) {
+			$obj->contributors = $contributors;
+		} else {
+			$obj->contributors = array();
+		}
 
 		$fields = array_keys( get_object_vars( $this->fields ) );
 		foreach ( $fields as $field ) {

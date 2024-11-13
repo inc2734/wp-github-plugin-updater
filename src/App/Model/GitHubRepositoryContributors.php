@@ -57,7 +57,7 @@ class GitHubRepositoryContributors {
 	/**
 	 * Get contributors.
 	 *
-	 * @return array
+	 * @return array|WP_Error
 	 */
 	public function get() {
 		$transient = get_transient( $this->transient_name );
