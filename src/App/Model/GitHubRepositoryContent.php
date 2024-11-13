@@ -7,6 +7,7 @@
 
 namespace Inc2734\WP_GitHub_Plugin_Updater\App\Model;
 
+use WP_Error;
 use Inc2734\WP_GitHub_Plugin_Updater\App\Model\Requester;
 
 class GitHubRepositoryContent {
