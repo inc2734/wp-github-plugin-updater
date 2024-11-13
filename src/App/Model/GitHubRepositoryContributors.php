@@ -70,6 +70,7 @@ class GitHubRepositoryContributors {
 
 		$contributors = array();
 
+		// phpcs:disable Generic.CodeAnalysis.EmptyStatement.DetectedElse
 		if ( ! is_wp_error( $response ) && is_array( $response ) ) {
 			foreach ( $response as $contributor ) {
 				$contributors[] = array(
@@ -84,6 +85,7 @@ class GitHubRepositoryContributors {
 			// @todo Since it is not essential for updating, the cache is not erased by the GItHub API rate limitation measures.
 			// $this->delete_transient();
 		}
+		// phpcs:enable
 
 		return $contributors;
 	}
