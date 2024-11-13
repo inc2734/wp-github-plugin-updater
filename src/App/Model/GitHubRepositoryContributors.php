@@ -81,7 +81,8 @@ class GitHubRepositoryContributors {
 
 			set_transient( $this->transient_name, $contributors, 0 );
 		} else {
-			$this->delete_transient();
+			// @todo Since it is not essential for updating, the cache is not erased by the GItHub API rate limitation measures.
+			// $this->delete_transient();
 		}
 
 		return $contributors;
