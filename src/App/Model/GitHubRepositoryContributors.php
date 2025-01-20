@@ -166,6 +166,10 @@ class GitHubRepositoryContributors {
 		);
 		// phpcs:enable
 
-		return Requester::request( $url );
+		return Requester::request(
+			$url,
+			$this->user_name,
+			$this->repository
+		);
 	}
 }
