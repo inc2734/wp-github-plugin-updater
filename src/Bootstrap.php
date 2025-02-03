@@ -124,6 +124,10 @@ class Bootstrap {
 			return $transient;
 		}
 
+		if ( ! empty( $transient->no_update[ $this->plugin_name ] ) ) {
+			return $transient;
+		}
+
 		$response = $this->github_releases->get();
 		try {
 			if ( is_wp_error( $response ) ) {

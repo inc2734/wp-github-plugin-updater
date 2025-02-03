@@ -136,7 +136,9 @@ class GitHubReleases {
 			);
 		}
 
-		$body->package = ! empty( $body->tag_name )
+		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+
+		$body->package = ! empty( $body->tag_name ) && $body->tag_name !== $current['Version']
 			? $this->_get_zip_url( $body )
 			: false;
 
