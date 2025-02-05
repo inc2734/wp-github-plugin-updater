@@ -11,13 +11,14 @@ class Requester {
 
 	/**
 	 * Performs an HTTP request using the GET method and returns its response.
+	 * To maintain backward compatibility, it is also necessary to deal with cases where the second and third arguments are missing.
 	 *
 	 * @param string $url URL to retrieve.
-	 * @param string $user_name GitHub user name.
-	 * @param string $repository GitHub repository name.
+	 * @param string|null $user_name GitHub user name.
+	 * @param string|null $repository GitHub repository name.
 	 * @return array|WP_Error
 	 */
-	public static function request( $url, $user_name, $repository ) {
+	public static function request( $url, $user_name = null, $repository = null ) {
 		global $wp_version;
 
 		$args = apply_filters(
