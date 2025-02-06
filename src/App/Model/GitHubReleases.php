@@ -215,7 +215,7 @@ class GitHubReleases {
 				$tag_name
 			);
 
-			$http_status_code = $this->_get_http_status_code( $url );
+			$http_status_code = $this->get_http_status_code( $url );
 			if ( ! in_array( $http_status_code, array( 200, 302 ), true ) ) {
 				$url = sprintf(
 					'https://github.com/%1$s/%2$s/archive/%3$s.zip',
@@ -250,7 +250,7 @@ class GitHubReleases {
 				);
 			}
 
-			$http_status_code = $this->_get_http_status_code( $url );
+			$http_status_code = $this->get_http_status_code( $url );
 			if ( ! in_array( (int) $http_status_code, array( 200, 302 ), true ) ) {
 				throw new \RuntimeException(
 					sprintf(
@@ -274,8 +274,8 @@ class GitHubReleases {
 	 * @param string $url Target url.
 	 * @return int
 	 */
-	protected function _get_http_status_code( $url ) {
-		$response = Requester::request(
+	public function get_http_status_code( $url ) {
+		$response = Requester::head(
 			$url,
 			$this->user_name,
 			$this->repository
