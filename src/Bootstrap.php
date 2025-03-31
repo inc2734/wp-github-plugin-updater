@@ -120,6 +120,8 @@ class Bootstrap {
 	 * @return false|array
 	 */
 	public function _pre_set_site_transient_update_plugins( $transient ) {
+		global $wp_version;
+
 		if ( ! file_exists( WP_PLUGIN_DIR . '/' . $this->plugin_name ) ) {
 			return $transient;
 		}
@@ -174,7 +176,29 @@ class Bootstrap {
 		// phpcs:enable
 
 		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-		if ( ! $this->_should_update( $current['Version'], $response->tag_name ) ) {
+
+		$current_version      = $current['Version'];
+		$current_requires_wp  = $current['RequiresWP'];
+		$current_requires_php = $current['RequiresPHP'];
+
+		$env_info = array(
+			'wp_version'  => $this->_sanitize_version( $wp_version ),
+			'php_version' => $this->_sanitize_version( PHP_VERSION ),
+		);
+
+		$current_info = array(
+			'version'      => $this->_sanitize_version( $current_version ),
+			'requires_wp'  => $this->_sanitize_version( $current_requires_wp ),
+			'requires_php' => $this->_sanitize_version( $current_requires_php ),
+		);
+
+		$new_info = array(
+			'version'      => $this->_sanitize_version( $update->new_version ),
+			'requires_wp'  => $this->_sanitize_version( $update->requires ),
+			'requires_php' => $this->_sanitize_version( $update->requires_php ),
+		);
+
+		if ( ! static::should_update( $env_info, $current_info, $new_info ) ) {
 			if ( false === $transient || null === $transient ) {
 				$transient            = new stdClass();
 				$transient->no_update = array();
@@ -329,16 +353,39 @@ class Bootstrap {
 	/**
 	 * If remote version is newer, return true.
 	 *
-	 * @param string $current_version Current version.
-	 * @param string $remote_version Remove version.
+	 * @param array $env_info Environment info.
+	 * @param array $current_info Current plugin info.
+	 * @param array $new_info New plugin info.
 	 * @return bool
 	 */
-	protected function _should_update( $current_version, $remote_version ) {
-		return version_compare(
-			$this->_sanitize_version( $current_version ),
-			$this->_sanitize_version( $remote_version ),
+	public static function should_update( $env_info, $current_info, $new_info ) {
+		$version_ok = version_compare(
+			$current_info['version'],
+			$new_info['version'],
 			'<'
 		);
+
+		// Check whether your current environment meets the WP version required by the new plugin.
+		$wp_ok = true;
+		if ( $new_info['requires_wp'] ) {
+			$wp_ok = version_compare(
+				$env_info['wp_version'],
+				$new_info['requires_wp'],
+				'>='
+			);
+		}
+
+		// Check whether your current environment meets the PHP version required by the new plugin.
+		$php_ok = true;
+		if ( $new_info['requires_php'] ) {
+			$php_ok = version_compare(
+				$env_info['php_version'],
+				$new_info['requires_php'],
+				'>='
+			);
+		}
+
+		return $version_ok && $wp_ok && $php_ok;
 	}
 
 	/**
