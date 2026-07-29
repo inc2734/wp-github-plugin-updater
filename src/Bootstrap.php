@@ -144,7 +144,12 @@ class Bootstrap {
 			return $transient;
 		}
 
-		if ( ! $response->package ) {
+		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
+
+		$current_version = $this->_sanitize_version( $current['Version'] );
+		$new_version     = $this->_sanitize_version( $response->tag_name );
+
+		if ( version_compare( $current_version, $new_version, '<' ) && ! $response->package ) {
 			return $transient;
 		}
 
@@ -175,9 +180,6 @@ class Bootstrap {
 		);
 		// phpcs:enable
 
-		$current = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->plugin_name );
-
-		$current_version      = $current['Version'];
 		$current_requires_wp  = $current['RequiresWP'];
 		$current_requires_php = $current['RequiresPHP'];
 
@@ -187,13 +189,13 @@ class Bootstrap {
 		);
 
 		$current_info = array(
-			'version'      => $this->_sanitize_version( $current_version ),
+			'version'      => $current_version,
 			'requires_wp'  => $this->_sanitize_version( $current_requires_wp ),
 			'requires_php' => $this->_sanitize_version( $current_requires_php ),
 		);
 
 		$new_info = array(
-			'version'      => $this->_sanitize_version( $update->new_version ),
+			'version'      => $new_version,
 			'requires_wp'  => $this->_sanitize_version( $update->requires ),
 			'requires_php' => $this->_sanitize_version( $update->requires_php ),
 		);
