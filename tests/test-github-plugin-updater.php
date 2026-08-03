@@ -70,6 +70,61 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 	/**
 	 * @test
 	 */
+	public function no_update_when_filtered_version_is_not_newer() {
+		$filter_name = 'inc2734_github_plugin_updater_transient_response_inc2734/dummy-hello-dolly';
+		$filter      = function( $update ) {
+			$update->new_version = '0.0.1';
+			return $update;
+		};
+
+		add_filter( $filter_name, $filter );
+
+		$updater = $this->get_updater(
+			(object) array(
+				'tag_name' => '1000000',
+				'package'  => 'https://example.com/plugin.zip',
+			)
+		);
+
+		$transient = $updater->_pre_set_site_transient_update_plugins( false );
+
+		remove_filter( $filter_name, $filter );
+
+		$this->assertObjectHasProperty( 'no_update', $transient );
+		$this->assertArrayHasKey( 'hello.php', $transient->no_update );
+		$this->assertSame( '0.0.1', $transient->no_update['hello.php']->new_version );
+	}
+
+	/**
+	 * @test
+	 */
+	public function no_response_when_filtered_version_is_newer_but_package_is_unavailable() {
+		$current     = get_plugin_data( WP_PLUGIN_DIR . '/hello.php' );
+		$filter_name = 'inc2734_github_plugin_updater_transient_response_inc2734/dummy-hello-dolly';
+		$filter      = function( $update ) {
+			$update->new_version = '1000000';
+			return $update;
+		};
+
+		add_filter( $filter_name, $filter );
+
+		$updater = $this->get_updater(
+			(object) array(
+				'tag_name' => $current['Version'],
+				'package'  => false,
+			)
+		);
+
+		$transient = $updater->_pre_set_site_transient_update_plugins( false );
+
+		remove_filter( $filter_name, $filter );
+
+		$this->assertFalse( $transient );
+	}
+
+	/**
+	 * @test
+	 */
 	public function success_transmission() {
 		$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dolly' );
 		$transient = apply_filters( 'pre_set_site_transient_update_plugins', false );

@@ -195,7 +195,7 @@ class Bootstrap {
 		);
 
 		$new_info = array(
-			'version'      => $new_version,
+			'version'      => $this->_sanitize_version( $update->new_version ),
 			'requires_wp'  => $this->_sanitize_version( $update->requires ),
 			'requires_php' => $this->_sanitize_version( $update->requires_php ),
 		);
@@ -206,7 +206,7 @@ class Bootstrap {
 				$transient->no_update = array();
 			}
 			$transient->no_update[ $this->plugin_name ] = $update;
-		} else {
+		} elseif ( $update->package ) {
 			if ( false === $transient || null === $transient ) {
 				$transient           = new stdClass();
 				$transient->response = array();
