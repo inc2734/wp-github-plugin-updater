@@ -180,6 +180,61 @@ class GitHub_Plugin_Updater_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @test
+	 */
+	public function upgrader_process_complete() {
+		$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dolly' );
+		$hook_extra_list = array(
+			array( 'plugin' => 'hello.php' ),
+			array( 'plugins' => array( 'hello.php' ) ),
+		);
+
+		foreach ( $hook_extra_list as $hook_extra ) {
+			set_transient( 'wp_github_plugin_updater_hello.php', 'release' );
+			set_transient( 'wp_github_plugin_updater_repository_data_hello.php', 'repository' );
+
+			$updater->_upgrader_process_complete(
+				null,
+				array_merge(
+					array(
+						'action' => 'update',
+						'type'   => 'plugin',
+					),
+					$hook_extra
+				)
+			);
+
+			$this->assertFalse( get_transient( 'wp_github_plugin_updater_hello.php' ) );
+			$this->assertFalse( get_transient( 'wp_github_plugin_updater_repository_data_hello.php' ) );
+		}
+	}
+
+	/**
+	 * @test
+	 */
+	public function upgrader_process_complete_ignores_other_plugins() {
+		$updater = new Inc2734\WP_GitHub_Plugin_Updater\Bootstrap( 'hello.php', 'inc2734', 'dummy-hello-dolly' );
+
+		set_transient( 'wp_github_plugin_updater_hello.php', 'release' );
+		set_transient( 'wp_github_plugin_updater_repository_data_hello.php', 'repository' );
+
+		$updater->_upgrader_process_complete(
+			null,
+			array(
+				'action' => 'update',
+				'type'   => 'plugin',
+				'plugin' => 'example/example.php',
+			)
+		);
+
+		$this->assertSame( 'release', get_transient( 'wp_github_plugin_updater_hello.php' ) );
+		$this->assertSame( 'repository', get_transient( 'wp_github_plugin_updater_repository_data_hello.php' ) );
+
+		delete_transient( 'wp_github_plugin_updater_hello.php' );
+		delete_transient( 'wp_github_plugin_updater_repository_data_hello.php' );
+	}
+
+	/**
 	 * Return an updater with stubbed GitHub responses.
 	 *
 	 * @param object $response GitHub release response.

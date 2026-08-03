@@ -328,16 +328,21 @@ class Bootstrap {
 	 * Fires when the upgrader process is complete.
 	 *
 	 * @param WP_Upgrader $upgrader_object WP_Upgrader instance. In other contexts this might be a Theme_Upgrader, Plugin_Upgrader, Core_Upgrade, or Language_Pack_Upgrader instance.
-	 * @param array       $hook_extra Array of bulk item update data.
+	 * @param array       $hook_extra Array of update data.
 	 */
 	public function _upgrader_process_complete( $upgrader_object, $hook_extra ) {
-		if ( 'update' === $hook_extra['action'] && 'plugin' === $hook_extra['type'] ) {
-			foreach ( $hook_extra['plugins'] as $plugin ) {
-				if ( $plugin === $this->plugin_name ) {
-					$this->github_releases->delete_transient();
-					$this->github_repository_content->delete_transient();
-				}
-			}
+		if ( 'update' !== ( $hook_extra['action'] ?? null ) || 'plugin' !== ( $hook_extra['type'] ?? null ) ) {
+			return;
+		}
+
+		$plugins = isset( $hook_extra['plugins'] ) ? (array) $hook_extra['plugins'] : array();
+		if ( isset( $hook_extra['plugin'] ) ) {
+			$plugins[] = $hook_extra['plugin'];
+		}
+
+		if ( in_array( $this->plugin_name, $plugins, true ) ) {
+			$this->github_releases->delete_transient();
+			$this->github_repository_content->delete_transient();
 		}
 	}
 
